@@ -1,0 +1,190 @@
+/* agent/web/style.css - 极简高质感样式与动效 */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;700&display=swap');
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #faf9f5;
+  color: #34322d;
+}
+
+.claude-font-serif {
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e3e1da;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cfcdc5;
+}
+
+/* 正在执行文字的呼吸渐变动效 */
+@keyframes breathing-gradient {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.65;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.65;
+  }
+}
+
+.breathing-gradient {
+  background: linear-gradient(90deg, #d96528, #f59e0b, #d96528);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: breathing-gradient 2.4s ease-in-out infinite;
+}
+
+/* 工具折叠项样式 (无卡片容器、无背景) */
+.tool-item {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.tool-header-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.tool-header-btn:hover {
+  opacity: 0.85;
+}
+
+.tool-chevron {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(0deg);
+}
+
+.tool-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+/* 展开后的命令与结果详情 (无背景、无卡片框体，采用优雅极简左缩进边线) */
+.tool-detail-panel {
+  margin-top: 6px;
+  margin-left: 6px;
+  padding-left: 12px;
+  border-left: 1.5px solid #e5e3dc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #55534c;
+  background: transparent !important;
+}
+
+.tool-detail-section {
+  margin-bottom: 8px;
+}
+
+.tool-detail-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #8a877c;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.tool-detail-content {
+  background: transparent !important;
+  color: #3b3935;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Markdown 排版样式 */
+.prose-custom p {
+  margin-bottom: 0.85em;
+  line-height: 1.75;
+}
+.prose-custom p:last-child {
+  margin-bottom: 0;
+}
+.prose-custom h1, .prose-custom h2, .prose-custom h3 {
+  font-weight: 700;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  color: #1f1e1a;
+}
+.prose-custom h1 { font-size: 1.45rem; }
+.prose-custom h2 { font-size: 1.25rem; }
+.prose-custom h3 { font-size: 1.1rem; }
+.prose-custom ul, .prose-custom ol {
+  margin-left: 1.4em;
+  margin-bottom: 0.8em;
+}
+.prose-custom li {
+  margin-bottom: 0.3em;
+  list-style-type: disc;
+}
+.prose-custom pre {
+  background: #23221f;
+  color: #f5f4ef;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin: 0.8em 0;
+  font-size: 0.85rem;
+}
+.prose-custom code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #eeece4;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  color: #994d1b;
+}
+.prose-custom pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.prose-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9rem;
+}
+.prose-custom th, .prose-custom td {
+  border: 1px solid #e3e1da;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.prose-custom th {
+  background: #f0eee6;
+  font-weight: 600;
+}
+.prose-custom blockquote {
+  border-left: 3px solid #d46b28;
+  padding-left: 1rem;
+  margin: 0.8em 0;
+  color: #6b685e;
+}
+

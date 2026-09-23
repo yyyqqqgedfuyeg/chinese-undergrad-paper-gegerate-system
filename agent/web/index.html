@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaperGenFlow - 论文生成与排版 Agent</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Marked.js Markdown 渲染器 -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Highlight.js 代码高亮 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <!-- 自定义样式与动效 -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="h-screen flex overflow-hidden">
+
+  <!-- 左侧边栏 (极简 Claude 风格) -->
+  <aside class="w-72 bg-[#f3f1ea] border-r border-[#e5e3dc] flex flex-col justify-between shrink-0 select-none">
+    <div>
+      <!-- 品牌 Header -->
+      <div class="p-4 border-b border-[#e5e3dc] flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#d96528] flex items-center justify-center text-white shadow-xs">
+            <!-- 极简学术/文档 SVG 图标 -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-bold text-sm tracking-tight text-[#2d2b26]">DocxTemplateAgent</h1>
+            <p class="text-[11px] text-[#78756c] flex items-center space-x-1.5 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              <span id="model-badge">Agent 1 在线</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新建会话按钮 -->
+      <div class="p-3">
+        <button id="btn-new-chat" class="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-xl border border-[#dedcd4] bg-[#faf9f5] hover:bg-white text-[#3d3b34] font-medium text-xs transition-all shadow-xs hover:shadow-sm">
+          <svg class="w-3.5 h-3.5 text-[#d96528]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>新建对话</span>
+        </button>
+      </div>
+
+      <!-- 会话历史列表 -->
+      <div class="px-3 py-2">
+        <div class="text-[11px] font-semibold text-[#8a877c] uppercase tracking-wider px-2 mb-1.5">最近会话</div>
+        <div id="session-list" class="space-y-1 max-h-56 overflow-y-auto pr-1">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+
+      <!-- 工作区路径 -->
+      <div class="px-3 py-2">
+        <div class="text-[11px] font-semibold text-[#8a877c] uppercase tracking-wider px-2 mb-1.5">系统工作区</div>
+        <div class="p-2.5 rounded-xl bg-[#e9e7df] text-[11px] text-[#55534c] break-all border border-[#dedcd4] flex items-start space-x-2">
+          <!-- 极简文件夹 SVG 图标 -->
+          <svg class="w-4 h-4 text-[#8a877c] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+          </svg>
+          <span id="workspace-path-text" class="font-mono leading-tight">加载中...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部功能与清理 -->
+    <div class="p-3 border-t border-[#e5e3dc] space-y-1">
+      <button id="btn-clear-all" class="w-full text-left py-2 px-3 rounded-lg text-xs text-[#78756c] hover:text-rose-600 hover:bg-[#e9e7df] transition-colors flex items-center space-x-2">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        <span>清空所有历史对话</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主对话区 -->
+  <main class="flex-1 flex flex-col h-full bg-[#faf9f5] relative overflow-hidden">
+    
+    <!-- 顶部状态栏 -->
+    <header class="h-14 border-b border-[#eceae3] px-6 flex items-center justify-between bg-[#faf9f5]/80 backdrop-blur-sm z-10 shrink-0">
+      <div class="flex items-center space-x-3">
+        <span class="text-sm font-semibold text-[#2d2b26]" id="current-session-title">当前会话</span>
+        <span class="px-2 py-0.5 rounded-full bg-[#edebe4] text-[#6b685e] text-[11px] font-mono" id="current-thread-id">session_default</span>
+      </div>
+      <div class="flex items-center space-x-2 text-xs text-[#78756c]">
+        <span>排版与模板引擎: <strong class="text-[#d96528] font-mono">Agent 1</strong></span>
+      </div>
+    </header>
+
+    <!-- 消息滚动区 -->
+    <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+      
+      <!-- 欢迎 Hero 画面 (仅在无消息时显示) -->
+      <div id="welcome-hero" class="max-w-2xl mx-auto my-12 text-center space-y-4">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-[#d96528]/10 text-[#d96528] flex items-center justify-center shadow-xs">
+          <!-- 极简文档 feather 矢量图标 -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold tracking-tight text-[#22211d] claude-font-serif">文档排版与模板引擎智能体</h2>
+        <p class="text-xs text-[#737067] max-w-md mx-auto leading-relaxed">
+          正式接入 Agent 1，集成 bash、read、write、edit 工具与 docx 专业排版能力。专攻毕业设计 Word 模板解析、三线表规范构建与标准文档生成。
+        </p>
+        
+        <!-- 推荐提示词卡片 (全部采用无 Emoji 的极简矢量图标) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 text-left">
+          <div class="quick-prompt p-3 rounded-xl border border-[#e5e3dc] bg-white hover:border-[#d96528] hover:shadow-xs cursor-pointer transition-all">
+            <div class="flex items-center space-x-2 mb-1">
+              <svg class="w-3.5 h-3.5 text-[#d96528] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              <div class="font-medium text-xs text-[#2d2b26] prompt-title">创建标准毕业论文模板</div>
+            </div>
+            <div class="text-[11px] text-[#7e7b71] pl-5.5">清空默认样式，生成三级标题、1.5倍行距与首行缩进演示文档</div>
+          </div>
+
+          <div class="quick-prompt p-3 rounded-xl border border-[#e5e3dc] bg-white hover:border-[#d96528] hover:shadow-xs cursor-pointer transition-all">
+            <div class="flex items-center space-x-2 mb-1">
+              <svg class="w-3.5 h-3.5 text-[#d96528] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <div class="font-medium text-xs text-[#2d2b26] prompt-title">构建中国学术规范三线表</div>
+            </div>
+            <div class="text-[11px] text-[#7e7b71] pl-5.5">生成顶底1.5pt、栏目0.75pt标准三线表并写入 Word 规范文档</div>
+          </div>
+
+          <div class="quick-prompt p-3 rounded-xl border border-[#e5e3dc] bg-white hover:border-[#d96528] hover:shadow-xs cursor-pointer transition-all">
+            <div class="flex items-center space-x-2 mb-1">
+              <svg class="w-3.5 h-3.5 text-[#d96528] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <div class="font-medium text-xs text-[#2d2b26] prompt-title">检查已有模板规范</div>
+            </div>
+            <div class="text-[11px] text-[#7e7b71] pl-5.5">使用 read 与 bash 工具检查目标 Word 模板段落字体与底层结构</div>
+          </div>
+
+          <div class="quick-prompt p-3 rounded-xl border border-[#e5e3dc] bg-white hover:border-[#d96528] hover:shadow-xs cursor-pointer transition-all">
+            <div class="flex items-center space-x-2 mb-1">
+              <svg class="w-3.5 h-3.5 text-[#d96528] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              <div class="font-medium text-xs text-[#2d2b26] prompt-title">深度解析样式与首行缩进</div>
+            </div>
+            <div class="text-[11px] text-[#7e7b71] pl-5.5">展示正文首行缩进 2 字符 (24pt) 与中西文字体的配置原理</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 消息流挂载容器 -->
+      <div id="messages-list" class="max-w-3xl mx-auto space-y-6"></div>
+    </div>
+
+    <!-- 底部输入框区 -->
+    <div class="p-4 md:p-6 bg-gradient-to-t from-[#faf9f5] via-[#faf9f5] to-transparent shrink-0">
+      <div class="max-w-3xl mx-auto">
+        <div class="rounded-2xl border border-[#dedcd4] bg-white shadow-xs focus-within:border-[#d96528] focus-within:ring-2 focus-within:ring-[#d96528]/10 transition-all p-2.5">
+          <textarea
+            id="chat-input"
+            rows="2"
+            placeholder="向 Agent 下达排版解析或模板生成指令... (Enter 发送，Shift + Enter 换行)"
+            class="w-full resize-none border-0 bg-transparent p-2 text-sm text-[#2d2b26] focus:ring-0 focus:outline-none placeholder-[#a3a096]"
+          ></textarea>
+          
+          <div class="flex items-center justify-between pt-1 px-1 border-t border-[#f2f0ea]">
+            <div class="flex items-center space-x-1.5 text-[11px] text-[#8c897e]">
+              <!-- 极简终端/工具状态指示 SVG -->
+              <svg class="w-3.5 h-3.5 text-[#8c897e]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>内置 bash, read, write, edit 工具与 docx 专业排版能力</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button
+                id="btn-send"
+                class="px-4 py-1.5 rounded-xl bg-[#d96528] hover:bg-[#c2551e] text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span>发送</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="text-center text-[11px] text-[#a8a59b] mt-2">
+          基于 LangGraph 状态机驱动 · 中国本科毕业设计排版与模板引擎
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 业务前端 JS 脚本 -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
+

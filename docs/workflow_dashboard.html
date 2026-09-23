@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThesisFlow · 毕业论文创作模式 LangGraph 状态机交互看板</title>
+  <!-- Tailwind CSS -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* n8n 风格的点阵背景与核心动画 */
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      user-select: none;
+      overflow: hidden;
+    }
+    .canvas-grid {
+      background-size: 24px 24px;
+      background-image: radial-gradient(circle, #334155 1.5px, transparent 1.5px);
+    }
+    /* SVG 连接线与流动粒子 */
+    .edge-flow {
+      stroke-dasharray: 8, 8;
+      animation: flowAnimation 1s linear infinite;
+    }
+    @keyframes flowAnimation {
+      from { stroke-dashoffset: 32; }
+      to { stroke-dashoffset: 0; }
+    }
+    .edge-inactive {
+      stroke: #334155;
+      stroke-width: 2.5;
+    }
+    .edge-active {
+      stroke: #6366f1;
+      stroke-width: 3.5;
+      filter: drop-shadow(0 0 6px #6366f1);
+    }
+    .edge-loop {
+      stroke: #a855f7;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 6px #a855f7);
+    }
+    /* 节点呼吸灯光环 */
+    .node-running {
+      border-color: #6366f1 !important;
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.65), inset 0 0 15px rgba(99, 102, 241, 0.2);
+      transform: scale(1.02);
+      transition: all 0.2s ease;
+    }
+    .node-completed {
+      border-color: #10b981 !important;
+    }
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col canvas-grid">
+
+  <!-- 顶部导航与全局状态控制栏 -->
+  <header class="h-16 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 flex items-center justify-between z-30 shadow-md">
+    <div class="flex items-center space-x-4">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="font-bold text-base text-slate-100 tracking-wide">ThesisFlow · 创作模式状态机 (LangGraph)</h1>
+          <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-mono">Plan-and-Execute Loop</span>
+        </div>
+        <p class="text-xs text-slate-400">选题: <span class="text-slate-200 font-medium">基于Spring Boot与Vue的高校心理健康预约平台的设计与实现</span></p>
+      </div>
+    </div>
+
+    <!-- 实时执行统计与监控指标 -->
+    <div class="hidden md:flex items-center space-x-6 bg-slate-800/80 px-4 py-1.5 rounded-lg border border-slate-700/60 text-xs">
+      <div>
+        <span class="text-slate-400">全文字数:</span>
+        <span id="stat-words" class="font-bold text-emerald-400 font-mono ml-1 text-sm">0</span>
+        <span class="text-slate-500">/ 14,000</span>
+      </div>
+      <div class="w-px h-4 bg-slate-700"></div>
+      <div>
+        <span class="text-slate-400">小节循环:</span>
+        <span id="stat-sections" class="font-bold text-indigo-400 font-mono ml-1 text-sm">0</span>
+        <span class="text-slate-500">/ 16 节</span>
+      </div>
+      <div class="w-px h-4 bg-slate-700"></div>
+      <div>
+        <span class="text-slate-400">生成资产:</span>
+        <span id="stat-assets" class="font-bold text-amber-400 font-mono ml-1 text-sm">0</span>
+        <span class="text-slate-500">图表/UI</span>
+      </div>
+      <div class="w-px h-4 bg-slate-700"></div>
+      <div>
+        <span class="text-slate-400">真实文献:</span>
+        <span id="stat-bibs" class="font-bold text-sky-400 font-mono ml-1 text-sm">22</span>
+        <span class="text-slate-500">篇</span>
+      </div>
+    </div>
+
+    <!-- 控制按钮区域 -->
+    <div class="flex items-center space-x-3">
+      <button id="btn-play" onclick="togglePlay()" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">
+        <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+        <span id="play-text">模拟连续执行</span>
+      </button>
+      <button onclick="stepWorkflow()" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition">
+        <span>单步步进</span>
+        <kbd class="text-[10px] bg-slate-900 px-1 py-0.5 rounded text-slate-400">Step</kbd>
+      </button>
+      <button onclick="resetWorkflow()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 transition" title="重置状态机">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+      </button>
+      <div class="w-px h-5 bg-slate-800"></div>
+      <button onclick="toggleInspector()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="展开/收起状态检查抽屉">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主体工作区：类 n8n 节点拓扑画布 + 侧边检查抽屉 -->
+  <div class="flex-1 relative overflow-hidden flex">
+    
+    <!-- SVG 画布连线层 -->
+    <svg id="edge-layer" class="absolute inset-0 w-full h-full pointer-events-none z-10">
+      <!-- 连线路径由 JS 动态计算绘制 -->
+    </svg>
+
+    <!-- 节点容器（支持拖拽与绝对定位排布） -->
+    <div id="canvas-container" class="w-full h-full relative overflow-auto p-12 transition-transform select-none">
+
+      <!-- ====================== 节点 1: 模板切片与样式提取 ====================== -->
+      <div id="node-template_slicer" onclick="selectNode('template_slicer')" style="top: 80px; left: 60px;" class="absolute w-72 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3.5 py-2.5 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span class="text-xs font-bold text-slate-200">1. 模板切片与样式提取</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-700 text-slate-300 font-mono">OOXML</span>
+        </div>
+        <div class="p-3.5 text-xs space-y-2">
+          <div class="text-slate-400">解构学校老模板，静态页与格式双轨分离</div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800 text-[11px] font-mono space-y-1">
+            <div class="text-emerald-400">✓ 封面/声明/评阅表切片 (3块)</div>
+            <div class="text-slate-300">✓ 抽取: 宋体/Times/1.5倍行距</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <span>运行状态: <strong id="badge-template_slicer" class="text-slate-400">就绪</strong></span>
+            <span>Count: <strong class="text-indigo-400 font-mono">1</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== 节点 2: 全局规格与真实文献池 ====================== -->
+      <div id="node-spec_initializer" onclick="selectNode('spec_initializer')" style="top: 80px; left: 400px;" class="absolute w-76 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3.5 py-2.5 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+            <span class="text-xs font-bold text-slate-200">2. 全局规格硬编码 & 文献池</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-violet-900/60 text-violet-300 border border-violet-700/50 font-mono">Ground Truth</span>
+        </div>
+        <div class="p-3.5 text-xs space-y-2">
+          <div class="text-slate-400">固化数据库Schema与模块；联网抓取22篇真实文献</div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800 text-[11px] font-mono space-y-1">
+            <div class="text-violet-300">📁 落盘: spec.json (唯一事实源)</div>
+            <div class="text-sky-300">📚 落盘: bib_pool.json (真实文献池)</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <span>运行状态: <strong id="badge-spec_initializer" class="text-slate-400">就绪</strong></span>
+            <span>Count: <strong class="text-violet-400 font-mono">1</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== 节点 3: 两阶段大纲规划 ====================== -->
+      <div id="node-outline_planner" onclick="selectNode('outline_planner')" style="top: 80px; left: 740px;" class="absolute w-76 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3.5 py-2.5 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span class="text-xs font-bold text-slate-200">3. 两阶段大纲规划 (Task Queue)</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-amber-900/60 text-amber-300 border border-amber-700/50 font-mono">Planner</span>
+        </div>
+        <div class="p-3.5 text-xs space-y-2">
+          <div class="text-slate-400">宏观确定6大章，微观展开16个二级小节并标定图表需求</div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800 text-[11px] font-mono space-y-1">
+            <div class="text-amber-300">阶段1: 规划 6 个核心章节骨架</div>
+            <div class="text-emerald-400">阶段2: 展开 16 个小节任务队列</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <span>运行状态: <strong id="badge-outline_planner" class="text-slate-400">就绪</strong></span>
+            <span>Count: <strong class="text-amber-400 font-mono">1</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== 节点 4 编排容器: Plan-and-Execute 循环子图 ====================== -->
+      <div id="subgraph-box" style="top: 300px; left: 340px; width: 680px; height: 260px;" class="absolute rounded-2xl border-2 border-dashed border-violet-500/40 bg-violet-950/10 p-4 z-10 pointer-events-none">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="px-2 py-0.5 rounded text-[10px] bg-violet-600 text-white font-bold uppercase tracking-wider">Sequential Loop</span>
+            <span class="text-xs font-bold text-violet-300">二级小节顺序执行循环 (~1,000字/次，迭代16次)</span>
+          </div>
+          <div class="text-[11px] font-mono text-violet-400">
+            当前进度: <span id="loop-progress" class="font-bold text-white">0 / 16</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4a. 任务调度分发器 (Task Dispatcher) -->
+      <div id="node-task_dispatcher" onclick="selectNode('task_dispatcher')" style="top: 350px; left: 360px;" class="absolute w-52 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3 py-2 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+            <span class="text-xs font-bold text-slate-200">4a. 任务调度器</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400">Dispatcher</span>
+        </div>
+        <div class="p-3 text-xs space-y-1.5">
+          <div class="text-slate-400">从队列取出当前节，组装最小滑动上下文</div>
+          <div class="text-[10px] text-slate-500 pt-1 flex justify-between">
+            <span>状态: <strong id="badge-task_dispatcher" class="text-slate-400">就绪</strong></span>
+            <span>Loops: <strong id="count-task_dispatcher" class="text-violet-400 font-mono">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4b. 小节执行智能体 (Section Executor) -->
+      <div id="node-section_executor" onclick="selectNode('section_executor')" style="top: 350px; left: 590px;" class="absolute w-60 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3 py-2 bg-indigo-900/40 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+            <span class="text-xs font-bold text-slate-200">4b. 小节执行智能体</span>
+          </div>
+          <span class="px-1 py-0.2 rounded bg-indigo-600/80 text-[10px] text-white font-mono">Executor</span>
+        </div>
+        <div class="p-3 text-xs space-y-2">
+          <div class="bg-slate-950 p-1.5 rounded border border-slate-800 text-[10px] font-mono space-y-0.5">
+            <div class="text-amber-400">① 资产先导: Bash渲染图/表/UI</div>
+            <div class="text-emerald-400">② 看图说话: 产出 1000 字正文</div>
+          </div>
+          <div class="text-[10px] text-slate-500 flex justify-between">
+            <span>状态: <strong id="badge-section_executor" class="text-slate-400">就绪</strong></span>
+            <span>Runs: <strong id="count-section_executor" class="text-indigo-400 font-mono">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4c. 状态推进与记忆更新器 (State Updater) -->
+      <div id="node-state_updater" onclick="selectNode('state_updater')" style="top: 350px; left: 830px;" class="absolute w-52 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3 py-2 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+            <span class="text-xs font-bold text-slate-200">4c. 状态推进器</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400">Updater</span>
+        </div>
+        <div class="p-3 text-xs space-y-1.5">
+          <div class="text-slate-400">记录末尾300字与摘要，字数累加，回环调度</div>
+          <div class="text-[10px] text-slate-500 pt-1 flex justify-between">
+            <span>状态: <strong id="badge-state_updater" class="text-slate-400">就绪</strong></span>
+            <span>Loops: <strong id="count-state_updater" class="text-violet-400 font-mono">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== 节点 5: 交叉引用与文献编译器 ====================== -->
+      <div id="node-cross_ref_compiler" onclick="selectNode('cross_ref_compiler')" style="top: 610px; left: 360px;" class="absolute w-72 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3.5 py-2.5 bg-slate-800/80 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+            <span class="text-xs font-bold text-slate-200">5. 交叉引用与文献编译器</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-sky-900/60 text-sky-300 border border-sky-700/50 font-mono">Compiler</span>
+        </div>
+        <div class="p-3.5 text-xs space-y-2">
+          <div class="text-slate-400">注入Word书签与域代码REF；参考文献动态排序与真上标</div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800 text-[11px] font-mono space-y-1">
+            <div class="text-sky-300">✓ 书签: &lt;w:bookmarkStart _Ref_Fig_X&gt;</div>
+            <div class="text-emerald-400">✓ GB/T 7714 顺序动态对齐 (22篇)</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <span>运行状态: <strong id="badge-cross_ref_compiler" class="text-slate-400">就绪</strong></span>
+            <span>Count: <strong class="text-sky-400 font-mono">1</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== 节点 6: 底层 OOXML 缝合装配器 ====================== -->
+      <div id="node-docx_assembler" onclick="selectNode('docx_assembler')" style="top: 610px; left: 740px;" class="absolute w-76 rounded-xl bg-slate-900 border-2 border-slate-700 shadow-xl cursor-pointer hover:border-slate-500 transition-all z-20">
+        <div class="px-3.5 py-2.5 bg-emerald-900/40 rounded-t-lg border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span class="text-xs font-bold text-slate-200">6. OOXML 装配与版本归档</span>
+          </div>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-emerald-800/70 text-emerald-200 font-mono">Finalizer</span>
+        </div>
+        <div class="p-3.5 text-xs space-y-2">
+          <div class="text-slate-400">静态页无损拼装，PDF渲染，创建 commit_v1.0 快照</div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800 text-[11px] font-mono space-y-1">
+            <div class="text-emerald-300">📁 交付: output/20260917_初稿.docx</div>
+            <div class="text-slate-400">🏷️ 版本快照: commit_c1a2b3 (v1.0)</div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+            <span>运行状态: <strong id="badge-docx_assembler" class="text-slate-400">就绪</strong></span>
+            <span>Count: <strong class="text-emerald-400 font-mono">1</strong></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右侧状态检查抽屉 (State Inspector Drawer) -->
+    <div id="inspector-drawer" class="w-96 bg-slate-900/95 backdrop-blur border-l border-slate-800 flex flex-col z-30 shadow-2xl transition-all duration-300">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></div>
+          <h2 class="text-sm font-bold text-slate-200">状态检查器 (Inspector)</h2>
+        </div>
+        <span id="inspector-node-title" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono">未选中节点</span>
+      </div>
+
+      <!-- 抽屉 Tab 导航 -->
+      <div class="flex border-b border-slate-800 text-xs bg-slate-950/50">
+        <button onclick="setTab('payload')" id="tab-btn-payload" class="flex-1 py-2 font-medium border-b-2 border-indigo-500 text-indigo-400">State 数据</button>
+        <button onclick="setTab('prompt')" id="tab-btn-prompt" class="flex-1 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">Prompt 约束</button>
+        <button onclick="setTab('assets')" id="tab-btn-assets" class="flex-1 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">实时产物</button>
+        <button onclick="setTab('logs')" id="tab-btn-logs" class="flex-1 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">控制台</button>
+      </div>
+
+      <!-- 抽屉内容容器 -->
+      <div class="flex-1 overflow-auto p-4 text-xs font-mono">
+        <!-- Tab 1: State Payload -->
+        <div id="tab-content-payload" class="space-y-3">
+          <div class="text-slate-400 text-[11px]">当前节点的全局状态快照与输出增量 (State Delta):</div>
+          <pre id="json-viewer" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 overflow-x-auto text-[11px] leading-relaxed select-text"></pre>
+        </div>
+
+        <!-- Tab 2: Prompt 模板 -->
+        <div id="tab-content-prompt" class="hidden space-y-3">
+          <div class="text-slate-400 text-[11px]">注入该节点的 System Prompt 与滑动上下文约束:</div>
+          <div id="prompt-viewer" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 whitespace-pre-wrap text-[11px] leading-relaxed select-text"></div>
+        </div>
+
+        <!-- Tab 3: 实时产物预览 (图表/UI/文本) -->
+        <div id="tab-content-assets" class="hidden space-y-3">
+          <div class="text-slate-400 text-[11px]">节点所调用的底层工具生成的实际资产:</div>
+          <div id="assets-viewer" class="space-y-3">
+            <!-- 动态注入预览 -->
+          </div>
+        </div>
+
+        <!-- Tab 4: 控制台执行日志 -->
+        <div id="tab-content-logs" class="hidden space-y-2">
+          <div class="text-slate-400 text-[11px]">终端 stdout / stderr:</div>
+          <div id="log-viewer" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-emerald-400 font-mono text-[10px] space-y-1 select-text">
+            <div>[System] LangGraph StateGraph engine initialized.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部版本演进数轴 (Git-like Docx Version Timeline) -->
+  <footer class="h-20 bg-slate-900/90 backdrop-blur border-t border-slate-800 px-6 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-3">
+      <span class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+        <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+        <span>Docx 版本演进树 (PaperVCS)</span>
+      </span>
+      <span class="text-slate-600">|</span>
+      
+      <!-- 时间轴节点 -->
+      <div class="flex items-center space-x-4">
+        <!-- 节点 0: 原始模板 -->
+        <div class="flex items-center space-x-2 text-xs bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700">
+          <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+          <div>
+            <div class="font-bold text-slate-300">v0.1 原始老模板</div>
+            <div class="text-[10px] text-slate-500">清华大学本科模板.docx</div>
+          </div>
+        </div>
+
+        <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+
+        <!-- 节点 1: v1.0 初稿 (动态点亮) -->
+        <div id="version-v1" class="flex items-center space-x-2 text-xs bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/40 opacity-50 transition-all">
+          <div id="version-v1-dot" class="w-2 h-2 rounded-full bg-slate-600"></div>
+          <div>
+            <div class="font-bold text-slate-200 flex items-center space-x-1.5">
+              <span>v1.0 创作初稿交付</span>
+              <span id="version-v1-badge" class="hidden px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] border border-emerald-500/30">Ready</span>
+            </div>
+            <div id="version-v1-meta" class="text-[10px] text-slate-500 font-mono">等待生成完成...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 交付操作按键 -->
+    <div class="flex items-center space-x-3">
+      <button onclick="previewDocxModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
+        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+        <span>预览排版成稿</span>
+      </button>
+      <button onclick="alert('已导出: output/20260917_毕业论文_v1.0_初稿.docx (符合学校规范)')" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30 transition flex items-center space-x-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+        <span>下载成稿 (.docx)</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ======================== 模态弹窗: 论文仿真预览 ======================== -->
+  <div id="docx-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
+    <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="px-6 py-4 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <h3 class="font-bold text-sm text-slate-100">Word 原生排版效果高保真仿真预览 (带角标与原生交叉引用)</h3>
+        </div>
+        <button onclick="closeDocxModal()" class="text-slate-400 hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="flex-1 overflow-auto p-8 bg-slate-950 space-y-6 text-slate-300 font-serif leading-relaxed text-sm select-text">
+        <!-- 仿真页面 -->
+        <div class="max-w-2xl mx-auto bg-white text-slate-900 p-10 shadow-2xl rounded-sm border border-slate-200 space-y-4">
+          <div class="text-center font-bold text-xl pb-2 border-b border-slate-300 font-sans">
+            第 3 章 系统需求与核心流程分析
+          </div>
+          <div class="font-bold text-base font-sans pt-2">3.2 业务流程分析</div>
+          <p class="indent-8 text-justify leading-7">
+            高校心理咨询服务不同于常规社交软件，其业务核心在于多角色间严格的伦理隐私隔离与实时预约排程<sup><a href="#ref-1" class="text-indigo-600 font-sans font-bold">[1]</a></sup>。为了确保学生咨询数据的安全性，本系统采用了基于 RBAC 模型的权限校验机制，具体交互流转<span class="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded font-mono text-xs border border-indigo-200">如图 3-1 所示</span>。
+          </p>
+          <!-- 仿真插入图 -->
+          <div class="py-3 text-center">
+            <div class="inline-block p-3 bg-slate-50 border border-slate-300 rounded text-xs font-mono text-slate-700">
+              [ 系统核心业务流程图 / Mermaid 渲染产物 (1080P) ]
+            </div>
+            <div class="text-xs font-sans text-slate-600 mt-2 font-bold">
+              图 3-1 用户预约与权限流转业务时序图
+            </div>
+          </div>
+          <p class="indent-8 text-justify leading-7">
+            如图 3-1 所示，客户端在发起预约请求时，网关服务首先调用 Spring Security 过滤器链进行 JWT 验签<sup><a href="#ref-2" class="text-indigo-600 font-sans font-bold">[2]</a></sup>，确认该学生无违约锁止记录后，方可向咨询师日程表发起行锁竞争……
+          </p>
+          <div class="border-t border-slate-200 pt-4 mt-6 text-xs text-slate-500 font-sans">
+            <div class="font-bold text-slate-700 mb-1">参考文献 (GB/T 7714-2015 规范):</div>
+            <div>[1] 张晨, 李明. 现代高校心理咨询信息系统的架构与安全规范[J]. 计算机工程与设计, 2024, 45(03): 812-819.</div>
+            <div>[2] Walls C. Spring Boot in Action[M]. Shelter Island: Manning Publications, 2022: 45-68.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== 核心状态机逻辑与交互脚本 ======================== -->
+  <script>
+    // 16个二级小节的任务执行规划列表
+    const SECTION_TASKS = [
+      { id: "1.1", title: "1.1 课题背景与研究意义", words: 950, asset: null },
+      { id: "1.2", title: "1.2 国内外研究现状分析", words: 1100, asset: null },
+      { id: "1.3", title: "1.3 论文主要研究内容与结构", words: 800, asset: null },
+      { id: "2.1", title: "2.1 Spring Boot 核心架构与特性", words: 900, asset: null },
+      { id: "2.2", title: "2.2 Vue 3 前端工程化技术", words: 850, asset: null },
+      { id: "2.3", title: "2.3 MySQL 与 MyBatis-Plus 持久层", words: 850, asset: null },
+      { id: "3.1", title: "3.1 系统可行性分析", words: 950, asset: null },
+      { id: "3.2", title: "3.2 业务流程与用例分析", words: 1200, asset: { type: "mermaid", id: "fig_3_1", caption: "图 3-1 用户预约核心业务时序图" } },
+      { id: "3.3", title: "3.3 系统非功能性需求", words: 850, asset: null },
+      { id: "4.1", title: "4.1 系统总体架构设计", words: 1150, asset: { type: "mermaid", id: "fig_4_1", caption: "图 4-1 平台三层逻辑架构图" } },
+      { id: "4.2", title: "4.2 核心功能模块设计", words: 1050, asset: null },
+      { id: "4.3", title: "4.3 数据库概念与物理结构设计", words: 1300, asset: { type: "table", id: "tbl_4_1", caption: "表 4-1 用户信息表 (三线表)" } },
+      { id: "5.1", title: "5.1 开发运行环境配置", words: 800, asset: { type: "table", id: "tbl_5_1", caption: "表 5-1 系统软硬件运行环境表" } },
+      { id: "5.2", title: "5.2 用户预约与大厅功能实现", words: 1250, asset: { type: "ui", id: "ui_5_1", caption: "图 5-1 心理预约服务大厅界面 (Playwright截图)" } },
+      { id: "5.3", title: "5.3 咨询师工作台功能实现", words: 1150, asset: { type: "ui", id: "ui_5_2", caption: "图 5-2 咨询师后台管理仪表盘 (Playwright截图)" } },
+      { id: "6.1", title: "6.1 系统功能与集成测试", words: 1100, asset: { type: "table", id: "tbl_6_1", caption: "表 6-1 核心预约业务测试用例表" } }
+    ];
+
+    // 全局状态机 State
+    let state = {
+      step: 0, // 0: init, 1: template_slicer, 2: spec, 3: outline, 4..19: loop (16 steps), 20: cross_ref, 21: docx_assembler, 22: done
+      isPlaying: false,
+      timer: null,
+      speed: 700,
+      totalWords: 0,
+      totalAssets: 0,
+      currentLoopIndex: 0,
+      selectedNodeId: "template_slicer"
+    };
+
+    // 节点元数据（供检查抽屉显示）
+    const NODE_METAS = {
+      template_slicer: {
+        title: "1. 模板切片与样式提取 (template_slicer_node)",
+        payload: {
+          input_template: "template/raw_template.docx",
+          static_blocks_extracted: ["cover_page.xml", "integrity_statement.xml", "defense_evaluation.xml"],
+          style_rules: {
+            font_chinese: "SimSun (宋体)",
+            font_english: "Times New Roman",
+            body_size: "12pt (小四)",
+            line_spacing: "1.5 lines",
+            first_line_indent: "2 chars (28.3pt)",
+            heading_1: "Bold 16pt (三号), centered, 12pt space before/after"
+          }
+        },
+        prompt: "System Directive:\n解析传入的 docx 模板 XML 树。利用 XPath 定位分节符与关键词，将固定行政页切片并冻结命名空间。分析 styles.xml 提取正文与各级标题排版规范输出 style_rules.json。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs text-slate-300 font-mono'>✓ 静态块快照已存入: template/static_blocks/<br>✓ 样式规范已导出: template/extracted_styles.json</div>",
+        logs: "[template_slicer] Unpacked raw_template.docx successfully.\n[template_slicer] Preserved 3 administrative static sections.\n[template_slicer] Style sniffer extracted 8 typography constraints."
+      },
+      spec_initializer: {
+        title: "2. 全局规格硬编码 & 真实文献池 (spec_initializer_node)",
+        payload: {
+          system_name: "高校心理健康预约咨询服务平台",
+          tech_stack: { backend: "Spring Boot 3.2.0 + MyBatis-Plus", frontend: "Vue 3 + Vite + TailwindCSS", db: "MySQL 8.0" },
+          database_schema_locked: {
+            sys_user: ["id BIGINT PK", "username VARCHAR(64)", "role ENUM('STUDENT','TEACHER','ADMIN')", "phone VARCHAR(11)"],
+            counselor: ["id BIGINT PK", "user_id BIGINT FK", "title VARCHAR(32)", "expertise TEXT"],
+            appointment: ["id BIGINT PK", "student_id BIGINT", "counselor_id BIGINT", "schedule_time DATETIME", "status TINYINT"]
+          },
+          bib_pool_count: 22,
+          bib_sample: ["张晨, 李明. 现代高校心理咨询系统架构[J]. 计算机工程, 2024.", "Walls C. Spring Boot in Action[M]. 2022."]
+        },
+        prompt: "System Directive:\n根据用户选题生成强类型 Project Spec JSON。包含角色清单、三级功能矩阵、数据库完整 Schema。此 Schema 将作为全篇唯一物理标准，严禁后续任何章节发生字段或命名矛盾。同时联网匹配 22 篇真实中英文学术文献入库。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-emerald-400'>spec.json 已硬编码落盘并在工作区加锁保护<br>bib_pool.json 包含 22 篇真实学术元数据</div>",
+        logs: "[spec_initializer] Locked DB Schema: 8 tables, 42 columns.\n[spec_initializer] Querying CrossRef & CNKI API...\n[spec_initializer] Fetched 22 peer-reviewed citations into bib_pool.json."
+      },
+      outline_planner: {
+        title: "3. 两阶段大纲规划 (two_stage_outline_planner_node)",
+        payload: {
+          stage_1_chapters: 6,
+          stage_2_sections_count: 16,
+          target_total_words: 14000,
+          planned_assets: ["fig_3_1 (时序图)", "fig_4_1 (架构图)", "tbl_4_1 (三线表)", "ui_5_1 (UI截图)", "ui_5_2 (UI截图)", "tbl_6_1 (测试用例)"],
+          task_queue_status: "Initialized 16 sequential units"
+        },
+        prompt: "System Directive:\n阶段一: 依据中国本科毕业设计正统规范规划 6 大章骨架与字数定额。\n阶段二: 注入 spec.json，展开 16 个二级小节，并在元数据中清晰标定每个小节所需的插图/插表类型与编号，生成有序 task_queue。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-amber-300'>两阶段大纲树已构建完毕，已扁平化为 16 个二级小节任务栈</div>",
+        logs: "[outline_planner] Macro Phase: Planned 6 chapters.\n[outline_planner] Micro Phase: Generated 16 task units with embedded asset requirements."
+      },
+      task_dispatcher: {
+        title: "4a. 任务调度分发器 (task_dispatcher)",
+        payload: {
+          current_task_index: "动态追踪当前节",
+          context_window_size: "2,150 tokens (轻量双轨)",
+          injected_last_tail: "...综上所述，系统的总体可行性得到了充分论证。",
+          injected_spec_ref: "spec.json (Read-only)"
+        },
+        prompt: "System Directive:\n检查循环指针。提取当前任务单元，组装 Prompt 最小上下文：注入 spec.json 全局事实、上一节尾部 300 字衔接诱饵、以及全局图表计数器。向下游 section_executor 发送指令。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-slate-300'>调度当前小节任务参数，分发给执行智能体</div>",
+        logs: "[task_dispatcher] Popped next pending task unit from queue.\n[task_dispatcher] Assembled sliding window context (~2.1k tokens)."
+      },
+      section_executor: {
+        title: "4b. 小节执行智能体 (section_executor)",
+        payload: {
+          execution_mode: "Single-pass High Trust (极速单次放行)",
+          average_words_per_call: "800 ~ 1,250 words",
+          asset_generation_strategy: "Just-in-time via bash_executor (Mermaid / Playwright)"
+        },
+        prompt: "System Directive:\n你正在撰写本二级小节，目标字数 1000 字。\n1. 严格遵照 spec.json 中的系统架构与字段；\n2. 若本节分配有图表，先通过 bash 执行渲染脚本拿到高清图片与结构摘要，在正文中以'如图 X 所示'为引子展开深入学术剖析，严禁假大空与此处省略代码；\n3. 正文引用文献时埋入 [[REF_CITE:key]] 锚点。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-indigo-300'>[Bash Tool] 生成了高清 Mermaid 架构图 / Playwright 1080P UI截图</div>",
+        logs: "[section_executor] Invoking bash_executor: mmdc -i sys_arch.mmd -o fig_4_1.png\n[section_executor] LLM generated 1,180 words of rigorous academic text."
+      },
+      state_updater: {
+        title: "4c. 状态推进器 (state_updater)",
+        payload: {
+          persisted_file: "temp_sections/chX_secY.md",
+          sliding_tail_updated: "提取最后300字与一句话摘要",
+          fig_counter_incremented: true
+        },
+        prompt: "System Directive:\n持久化该节正文Markdown分片。提取末尾 300 字更新全局滑动记忆，递增图表计数器，指针累加，回环返回调度器直至 16 个任务全部完成。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-violet-300'>更新全局状态累积字数，完成单步回环</div>",
+        logs: "[state_updater] Section cached to disk.\n[state_updater] Context tail updated. Loop counter ++."
+      },
+      cross_ref_compiler: {
+        title: "5. 交叉引用与文献编译器 (cross_ref_compiler_node)",
+        payload: {
+          total_bookmarks_injected: 6,
+          field_codes_ref_count: 14,
+          citations_aligned: 22,
+          bib_standard: "GB/T 7714-2015",
+          in_text_style: "Native Superscript <w:vertAlign val='superscript'/>"
+        },
+        prompt: "System Directive:\n扫描全篇 16 个分节正文。在所有图表题注处注入 <w:bookmarkStart>，将正文所有图表引用转化为原生 Word 域代码 <w:fldSimple w:instr=' REF _Ref_Fig_X \\h '>。按正文出现顺序重排参考文献序号，在引用处打上原生上标并在文末生成规范参考文献列表。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-sky-400'>✓ 所有图表已绑定 Word 原生书签与 F9 动态域<br>✓ 22 篇真实参考文献已严格按文中首次出现顺序动态对齐</div>",
+        logs: "[cross_ref_compiler] Built 6 bookmarks.\n[cross_ref_compiler] Re-indexed 22 citations to sequential [1]..[22] superscripts."
+      },
+      docx_assembler: {
+        title: "6. 底层 OOXML 装配与版本归档 (docx_assembler_node)",
+        payload: {
+          output_path: "output/20260917_毕业论文_v1.0_初稿.docx",
+          commit_id: "commit_c1a2b3 (v1.0)",
+          final_word_count: 13850,
+          total_figures: 8,
+          total_tables: 4,
+          status: "DELIVERED"
+        },
+        prompt: "System Directive:\n通过底层 OOXML 将冻结的静态页与动态正文无损拼接合并。调用 LibreOffice 执行无头渲染刷新目录与页码域。创建不可变版本快照提交至 .repo/commits/，输出整洁规范的正式成果交付物。",
+        assets: "<div class='p-3 bg-slate-950 rounded border border-slate-800 text-xs font-mono text-emerald-400'>🎉 论文终稿已导出: output/20260917_毕业论文_v1.0_初稿.docx<br>📦 版本树已归档: commit_c1a2b3 (v1.0)</div>",
+        logs: "[docx_assembler] OpenXML sections joined successfully.\n[docx_assembler] LibreOffice PDF preview generated.\n[docx_assembler] Atomic commit tagged as v1.0."
+      }
+    };
+
+    // 绘制 n8n 风格弯曲连线
+    function drawEdges() {
+      const svg = document.getElementById("edge-layer");
+      svg.innerHTML = "";
+
+      const edges = [
+        { from: "template_slicer", to: "spec_initializer", active: state.step >= 1 },
+        { from: "spec_initializer", to: "outline_planner", active: state.step >= 2 },
+        { from: "outline_planner", to: "task_dispatcher", active: state.step >= 3 },
+        { from: "task_dispatcher", to: "section_executor", active: state.step >= 4 && state.step <= 19 },
+        { from: "section_executor", to: "state_updater", active: state.step >= 4 && state.step <= 19 },
+        // 循环反向边: state_updater -> task_dispatcher
+        { from: "state_updater", to: "task_dispatcher", isLoop: true, active: state.step >= 4 && state.step < 19 },
+        // 循环完成出路: state_updater -> cross_ref_compiler
+        { from: "state_updater", to: "cross_ref_compiler", active: state.step >= 20 },
+        { from: "cross_ref_compiler", to: "docx_assembler", active: state.step >= 21 }
+      ];
+
+      edges.forEach(edge => {
+        const fromEl = document.getElementById(`node-${edge.from}`);
+        const toEl = document.getElementById(`node-${edge.to}`);
+        if (!fromEl || !toEl) return;
+
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+
+        let x1, y1, x2, y2;
+
+        if (edge.isLoop) {
+          // 循环弯曲连线（从 state_updater 底部绕回 task_dispatcher 底部）
+          x1 = fromRect.left + fromRect.width / 2;
+          y1 = fromRect.bottom;
+          x2 = toRect.left + toRect.width / 2;
+          y2 = toRect.bottom;
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          const d = `M ${x1} ${y1} C ${x1} ${y1 + 60}, ${x2} ${y2 + 60}, ${x2} ${y2}`;
+          path.setAttribute("d", d);
+          path.setAttribute("fill", "none");
+          path.setAttribute("class", edge.active ? "edge-loop edge-flow" : "edge-inactive");
+          svg.appendChild(path);
+          return;
+        }
+
+        // 常规右向或折向连线
+        if (fromRect.left < toRect.left) {
+          x1 = fromRect.right;
+          y1 = fromRect.top + fromRect.height / 2;
+          x2 = toRect.left;
+          y2 = toRect.top + toRect.height / 2;
+        } else {
+          // 折返连接
+          x1 = fromRect.left + fromRect.width / 2;
+          y1 = fromRect.bottom;
+          x2 = toRect.left + toRect.width / 2;
+          y2 = toRect.top;
+        }
+
+        const dx = Math.abs(x2 - x1) * 0.5;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("class", edge.active ? "edge-active edge-flow" : "edge-inactive");
+        svg.appendChild(path);
+      });
+    }
+
+    // 单步推进状态机
+    function stepWorkflow() {
+      if (state.step >= 22) {
+        alert("🎉 创作模式工作流已全部执行完毕！成果已打包交付。");
+        stopPlay();
+        return;
+      }
+
+      state.step++;
+      updateUI();
+    }
+
+    // 更新界面渲染状态
+    function updateUI() {
+      // 重置所有节点高亮
+      document.querySelectorAll("[id^='node-']").forEach(el => {
+        el.classList.remove("node-running");
+      });
+
+      // 步骤映射逻辑
+      if (state.step === 1) {
+        highlightNode("template_slicer");
+        selectNode("template_slicer");
+        addLog("[Node 1] 解析学校老模板成功，静态页切片已就绪。");
+      } else if (state.step === 2) {
+        highlightNode("spec_initializer");
+        selectNode("spec_initializer");
+        addLog("[Node 2] spec.json 数据库Schema已硬编码加锁；联网入库22篇真实文献。");
+      } else if (state.step === 3) {
+        highlightNode("outline_planner");
+        selectNode("outline_planner");
+        addLog("[Node 3] 两阶段大纲生成完毕，任务队列就绪 (16个二级小节)。");
+      } else if (state.step >= 4 && state.step <= 19) {
+        // 进入 Plan-and-Execute 循环 (共16次)
+        const loopIdx = state.step - 4; // 0..15
+        state.currentLoopIndex = loopIdx + 1;
+        const currentTask = SECTION_TASKS[loopIdx];
+
+        // 动态累加字数与资产
+        state.totalWords += currentTask.words;
+        if (currentTask.asset) state.totalAssets++;
+
+        // 轮番闪烁 4a -> 4b -> 4c
+        highlightNode("section_executor");
+        selectNode("section_executor");
+
+        document.getElementById("loop-progress").innerText = `${state.currentLoopIndex} / 16`;
+        document.getElementById("count-section_executor").innerText = state.currentLoopIndex;
+        document.getElementById("count-task_dispatcher").innerText = state.currentLoopIndex;
+        document.getElementById("count-state_updater").innerText = state.currentLoopIndex;
+
+        addLog(`[Loop ${state.currentLoopIndex}/16] 完成小节: ${currentTask.title} (+${currentTask.words}字)`);
+        if (currentTask.asset) {
+          addLog(`  ↳ [Bash] 渲染资产: ${currentTask.asset.caption}`);
+        }
+      } else if (state.step === 20) {
+        highlightNode("cross_ref_compiler");
+        selectNode("cross_ref_compiler");
+        addLog("[Node 5] 全局注入 Word 原生书签与 REF 域代码；按顺序重排参考文献角标 [1]..[22]。");
+      } else if (state.step === 21) {
+        highlightNode("docx_assembler");
+        selectNode("docx_assembler");
+        addLog("[Node 6] OOXML底层缝合完成！生成 output/20260917_毕业论文_v1.0_初稿.docx。");
+        
+        // 点亮版本树 v1.0
+        const v1El = document.getElementById("version-v1");
+        v1El.classList.remove("opacity-50");
+        v1El.classList.add("bg-emerald-950/40", "border-emerald-600/60");
+        document.getElementById("version-v1-dot").className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
+        document.getElementById("version-v1-badge").classList.remove("hidden");
+        document.getElementById("version-v1-meta").innerText = `13,850字 · 8图 · 4表 · 22文献`;
+      } else if (state.step >= 22) {
+        stopPlay();
+        addLog("[Finished] 整个创作模式状态机圆满完成！");
+      }
+
+      // 更新顶部统计数据
+      document.getElementById("stat-words").innerText = state.totalWords.toLocaleString();
+      document.getElementById("stat-sections").innerText = state.currentLoopIndex;
+      document.getElementById("stat-assets").innerText = state.totalAssets;
+
+      drawEdges();
+    }
+
+    function highlightNode(nodeId) {
+      const el = document.getElementById(`node-${nodeId}`);
+      if (el) el.classList.add("node-running");
+      const badge = document.getElementById(`badge-${nodeId}`);
+      if (badge) {
+        badge.innerText = "执行完成";
+        badge.className = "text-emerald-400 font-bold";
+      }
+    }
+
+    // 选中节点并在抽屉展示
+    function selectNode(nodeId) {
+      state.selectedNodeId = nodeId;
+      const meta = NODE_METAS[nodeId];
+      if (!meta) return;
+
+      document.getElementById("inspector-node-title").innerText = nodeId;
+      document.getElementById("json-viewer").innerText = JSON.stringify(meta.payload, null, 2);
+      document.getElementById("prompt-viewer").innerText = meta.prompt;
+      document.getElementById("assets-viewer").innerHTML = meta.assets;
+    }
+
+    // 连续播放控制
+    function togglePlay() {
+      if (state.isPlaying) {
+        stopPlay();
+      } else {
+        startPlay();
+      }
+    }
+
+    function startPlay() {
+      state.isPlaying = true;
+      document.getElementById("play-text").innerText = "暂停执行";
+      document.getElementById("btn-play").classList.replace("bg-indigo-600", "bg-amber-600");
+      document.getElementById("play-icon").innerHTML = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>';
+      
+      state.timer = setInterval(() => {
+        if (state.step >= 22) {
+          stopPlay();
+        } else {
+          stepWorkflow();
+        }
+      }, state.speed);
+    }
+
+    function stopPlay() {
+      state.isPlaying = false;
+      clearInterval(state.timer);
+      document.getElementById("play-text").innerText = "模拟连续执行";
+      document.getElementById("btn-play").classList.replace("bg-amber-600", "bg-indigo-600");
+      document.getElementById("play-icon").innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>';
+    }
+
+    function resetWorkflow() {
+      stopPlay();
+      state.step = 0;
+      state.totalWords = 0;
+      state.totalAssets = 0;
+      state.currentLoopIndex = 0;
+
+      document.querySelectorAll("[id^='badge-']").forEach(el => {
+        el.innerText = "就绪";
+        el.className = "text-slate-400";
+      });
+      document.querySelectorAll("[id^='count-']").forEach(el => {
+        el.innerText = "0";
+      });
+      document.getElementById("loop-progress").innerText = "0 / 16";
+      document.getElementById("stat-words").innerText = "0";
+      document.getElementById("stat-sections").innerText = "0";
+      document.getElementById("stat-assets").innerText = "0";
+
+      const v1El = document.getElementById("version-v1");
+      v1El.classList.add("opacity-50");
+      v1El.classList.remove("bg-emerald-950/40", "border-emerald-600/60");
+      document.getElementById("version-v1-dot").className = "w-2 h-2 rounded-full bg-slate-600";
+      document.getElementById("version-v1-badge").classList.add("hidden");
+      document.getElementById("version-v1-meta").innerText = "等待生成完成...";
+
+      document.getElementById("log-viewer").innerHTML = "<div>[System] LangGraph StateGraph reset to initial state.</div>";
+      updateUI();
+      selectNode("template_slicer");
+    }
+
+    function addLog(msg) {
+      const container = document.getElementById("log-viewer");
+      const div = document.createElement("div");
+      div.innerText = msg;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // 抽屉 Tab 切换
+    function setTab(tabName) {
+      ["payload", "prompt", "assets", "logs"].forEach(t => {
+        document.getElementById(`tab-content-${t}`).classList.add("hidden");
+        document.getElementById(`tab-btn-${t}`).classList.replace("border-indigo-500", "border-transparent");
+        document.getElementById(`tab-btn-${t}`).classList.replace("text-indigo-400", "text-slate-400");
+      });
+      document.getElementById(`tab-content-${tabName}`).classList.remove("hidden");
+      document.getElementById(`tab-btn-${tabName}`).classList.replace("border-transparent", "border-indigo-500");
+      document.getElementById(`tab-btn-${tabName}`).classList.replace("text-slate-400", "text-indigo-400");
+    }
+
+    function toggleInspector() {
+      const drawer = document.getElementById("inspector-drawer");
+      drawer.classList.toggle("hidden");
+      setTimeout(drawEdges, 100);
+    }
+
+    function previewDocxModal() {
+      document.getElementById("docx-modal").classList.remove("hidden");
+    }
+    function closeDocxModal() {
+      document.getElementById("docx-modal").classList.add("hidden");
+    }
+
+    // 窗口尺寸变化重绘连线
+    window.addEventListener("resize", drawEdges);
+    window.addEventListener("load", () => {
+      selectNode("template_slicer");
+      drawEdges();
+    });
+  </script>
+</body>
+</html>
+
