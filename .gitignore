@@ -41,9 +41,17 @@ ENV/
 *.sublime-project
 *.sublime-workspace
 
-# Logs
+# Logs & Test outputs
 *.log
 logs/
+
+# Intermediate generated documents & artifacts
+*.docx
+*.doc
+*.pdf
+test/render/
+test/test_paper_draft.md
+葵花宝典.txt
 
 # Operating System
 .DS_Store
