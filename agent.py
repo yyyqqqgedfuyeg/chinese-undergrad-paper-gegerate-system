@@ -5,7 +5,14 @@
 
 from agent.agent import BaseReActAgent, Skill, AgentState, AcademicPaperAgent
 from agent.docx_agent import DocxTemplateAgent, FormatExtractorAgent
-from agent.state import PaperGlobalState, FormatExtractorState, create_initial_global_state
+from agent.state import (
+    PaperGlobalState,
+    FormatExtractorState,
+    SectionPlan,
+    GlobalPlannerState,
+    create_initial_global_state,
+)
+from agent.outline_agent import OutlineAgent, GlobalPlannerAgent
 from agent.tool import (
     AGENT_1_TOOLS,
     BASIC_TOOLS,
@@ -31,6 +38,10 @@ __all__ = [
     "AcademicPaperAgent",
     "Skill",
     "AgentState",
+    "OutlineAgent",
+    "GlobalPlannerAgent",
+    "SectionPlan",
+    "GlobalPlannerState",
     "PaperGlobalState",
     "FormatExtractorState",
     "create_initial_global_state",

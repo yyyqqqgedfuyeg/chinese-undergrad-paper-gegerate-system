@@ -8,7 +8,7 @@ agent/state.py - 全局状态与智能体专有状态定义规范 (01-state-spec
 """
 
 import operator
-from typing import Annotated, Any, Dict, List, Optional, Sequence
+from typing import Annotated, Any, Dict, List, Literal, Optional, Sequence
 from typing_extensions import TypedDict
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
@@ -22,6 +22,21 @@ except ImportError:
 # ==============================================================================
 # 1. 全局共享状态 (PaperGlobalState)
 # ==============================================================================
+class SectionPlan(TypedDict):
+    """一至三级标题节点规划，字段遵循 01-state-spec。"""
+    section_id: str
+    title: str
+    target_words: int
+    status: Literal["pending", "in_progress", "completed"]
+    planned_assets: List[str]
+
+
+class GlobalPlannerState(TypedDict):
+    """规划阶段共享的事实源与大纲；大纲 agent 仅读取事实源。"""
+    single_source_of_truth: Dict[str, Any]
+    outline_plan: List[SectionPlan]
+
+
 class PaperGlobalState(TypedDict, total=False):
     """
     系统全局共享状态。
@@ -35,6 +50,7 @@ class PaperGlobalState(TypedDict, total=False):
     # 2. 核心学术资产与唯一事实源
     single_source_of_truth: Dict[str, Any]  # 唯一事实源（技术栈、数据库实体Schema、功能设计、实验方法）
     bib_pool: List[Dict[str, Any]]          # 文献池（20-25篇真实中英文献元数据及引用 Key）
+    outline_plan: List[SectionPlan]        # 跨阶段共享的一至三级标题任务列表
 
     # 3. 项目元信息
     project_id: str                   # 项目唯一标识
@@ -49,6 +65,7 @@ def create_initial_global_state(
     workspace_dir: Optional[str] = None,
     single_source_of_truth: Optional[Dict[str, Any]] = None,
     bib_pool: Optional[List[Dict[str, Any]]] = None,
+    outline_plan: Optional[List[SectionPlan]] = None,
 ) -> PaperGlobalState:
     """
     便捷工厂函数：创建并初始化 PaperGlobalState
@@ -60,6 +77,7 @@ def create_initial_global_state(
         "workspace_dir": workspace_dir or get_workspace_path(),
         "single_source_of_truth": single_source_of_truth or {},
         "bib_pool": bib_pool or [],
+        "outline_plan": outline_plan if outline_plan is not None else [],
         "project_id": project_id,
         "topic": topic,
     }
@@ -91,4 +109,3 @@ if __name__ == "__main__":
     print("PaperGlobalState 初始化成功:")
     for k, v in initial_state.items():
         print(f"  - {k}: {v}")
-
