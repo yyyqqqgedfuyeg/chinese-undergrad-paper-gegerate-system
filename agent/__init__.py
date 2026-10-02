@@ -12,6 +12,7 @@ from .state import (
     create_initial_global_state,
 )
 from .outline_agent import OutlineAgent, GlobalPlannerAgent
+from .literature_agent import LiteratureAgent, LiteratureIndexerAgent
 from .tool import (
     AGENT_1_TOOLS,
     BASIC_TOOLS,
@@ -38,6 +39,8 @@ __all__ = [
     "AcademicPaperAgent",
     "OutlineAgent",
     "GlobalPlannerAgent",
+    "LiteratureAgent",
+    "LiteratureIndexerAgent",
     "Skill",
     "AgentState",
     # 状态机规范

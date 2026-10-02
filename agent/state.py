@@ -49,7 +49,9 @@ class PaperGlobalState(TypedDict, total=False):
 
     # 2. 核心学术资产与唯一事实源
     single_source_of_truth: Dict[str, Any]  # 唯一事实源（技术栈、数据库实体Schema、功能设计、实验方法）
-    bib_pool: List[Dict[str, Any]]          # 文献池（20-25篇真实中英文献元数据及引用 Key）
+    bib_pool: List[Dict[str, Any]]          # 真实文献元数据及引用 Key（目标15中文+5英文，允许不足）
+    literature_search_report: Dict[str, Any]  # 检索轮次、关键词、来源诊断及中英文缺口
+    publication_year_range: Optional[Dict[str, int]]  # 文献发表年份闭区间 start_year/end_year，可省略一端
     outline_plan: List[SectionPlan]        # 跨阶段共享的一至三级标题任务列表
 
     # 3. 项目元信息
@@ -66,6 +68,7 @@ def create_initial_global_state(
     single_source_of_truth: Optional[Dict[str, Any]] = None,
     bib_pool: Optional[List[Dict[str, Any]]] = None,
     outline_plan: Optional[List[SectionPlan]] = None,
+    publication_year_range: Optional[Dict[str, int]] = None,
 ) -> PaperGlobalState:
     """
     便捷工厂函数：创建并初始化 PaperGlobalState
@@ -80,6 +83,7 @@ def create_initial_global_state(
         "outline_plan": outline_plan if outline_plan is not None else [],
         "project_id": project_id,
         "topic": topic,
+        "publication_year_range": publication_year_range,
     }
 
 

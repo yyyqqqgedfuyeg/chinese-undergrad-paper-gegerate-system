@@ -7,10 +7,10 @@ agent/tool.py - 论文生成系统基础工具库与 Skill 技能包定义
 3. write: 工作区文件写入与创建器 (自动建立多级目录)
 4. edit: 工作区文件定向编辑与替换器
 5. list_workspace_files: 查看工作区目录结构与文件清单
-6. search_academic_literature: 文献池检索与 GB/T 7714 格式候选匹配
+6. search_academic_literature: 全球真实文献检索（15 中文 + 5 英文）
 7. generate_mermaid_diagram: 论文图表 Mermaid 源码生成与校验落盘
 
-所有工具均内置 tool_retry.py 的 @with_retry(max_retries=3) 保护，
+文献工具使用有界 HTTP 重试，其余工具使用 tool_retry.py 的重试保护，
 并提供 get_docx_skill() 技能包工厂函数。
 """
 
@@ -21,6 +21,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from langchain_core.tools import tool
 
 from .agent import Skill
+from .literature_tool import search_academic_literature
 from .tool_retry import with_retry
 from .utils.get_sys_path import get_workspace_path
 
@@ -232,56 +233,6 @@ def list_workspace_files(relative_dir: str = ".") -> str:
 read_workspace_file = read
 write_workspace_file = write
 edit_workspace_file = edit
-
-
-@tool
-@with_retry(max_retries=3, initial_delay=0.3)
-def search_academic_literature(topic_or_keyword: str, max_results: int = 5) -> str:
-    """根据论文选题或技术关键词检索学术文献候选池，返回符合 GB/T 7714 标准的参考文献列表。"""
-    kb_papers = [
-        {
-            "key": "cite_spring_cloud_arch",
-            "keywords": ["spring", "微服务", "后端", "java", "架构"],
-            "formatted": "周志明. 凤凰架构: 构建可靠的大型分布式系统[M]. 北京: 机械工业出版社, 2021: 85-112.",
-        },
-        {
-            "key": "cite_vue3_frontend",
-            "keywords": ["vue", "前端", "单页面", "ui", "组件"],
-            "formatted": "尤雨溪, 团队. Vue.js 3.0 核心原理与企业级开发实战[J]. 计算机工程与应用, 2023, 59(12): 101-109.",
-        },
-        {
-            "key": "cite_mysql_optimization",
-            "keywords": ["mysql", "数据库", "schema", "索引", "持久化"],
-            "formatted": "姜承尧. MySQL技术内幕: InnoDB存储引擎[M]. 2版. 北京: 机械工业出版社, 2022: 45-68.",
-        },
-        {
-            "key": "cite_psychology_booking",
-            "keywords": ["心理", "咨询", "预约", "高校", "学生管理"],
-            "formatted": "张敏, 李建华. 高校心理健康服务数字化平台建设与预约机制优化研究[J]. 中国电化教育, 2024(3): 78-85.",
-        },
-        {
-            "key": "cite_distributed_security",
-            "keywords": ["安全", "jwt", "认证", "权限", "oauth"],
-            "formatted": "王伟, 赵强. 基于OAuth2.0与JWT的微服务无状态鉴权体系设计[J]. 软件学报, 2023, 34(8): 3652-3669.",
-        },
-    ]
-
-    kw = topic_or_keyword.lower()
-    matched = []
-    for paper in kb_papers:
-        score = sum(1 for k in paper["keywords"] if k in kw)
-        if score > 0 or not matched:
-            matched.append((score, paper))
-
-    matched.sort(key=lambda x: x[0], reverse=True)
-    selected = matched[:max_results]
-
-    res_lines = [f"📚 为关键词 `{topic_or_keyword}` 检索到以下规范参考文献:"]
-    for idx, (_, item) in enumerate(selected, 1):
-        res_lines.append(f"{idx}. [{item['key']}] {item['formatted']}")
-
-    res_lines.append("\n【引用建议】: 在论文草稿中可使用标签 `[[REF_CITE:{key}]]` 进行动态交叉引用。")
-    return "\n".join(res_lines)
 
 
 @tool
