@@ -4,7 +4,14 @@ agent 包统一初始化与接口导出
 
 from .agent import BaseReActAgent, Skill, AgentState, AcademicPaperAgent
 from .docx_agent import DocxTemplateAgent, FormatExtractorAgent
-from .state import PaperGlobalState, FormatExtractorState, create_initial_global_state
+from .state import (
+    PaperGlobalState,
+    FormatExtractorState,
+    SectionPlan,
+    GlobalPlannerState,
+    create_initial_global_state,
+)
+from .outline_agent import OutlineAgent, GlobalPlannerAgent
 from .tool import (
     AGENT_1_TOOLS,
     BASIC_TOOLS,
@@ -29,9 +36,13 @@ __all__ = [
     "DocxTemplateAgent",
     "FormatExtractorAgent",
     "AcademicPaperAgent",
+    "OutlineAgent",
+    "GlobalPlannerAgent",
     "Skill",
     "AgentState",
     # 状态机规范
+    "SectionPlan",
+    "GlobalPlannerState",
     "PaperGlobalState",
     "FormatExtractorState",
     "create_initial_global_state",
