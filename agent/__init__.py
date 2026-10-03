@@ -13,6 +13,7 @@ from .state import (
 )
 from .outline_agent import OutlineAgent, GlobalPlannerAgent
 from .literature_agent import LiteratureAgent, LiteratureIndexerAgent
+from .writing import WritingAgent, SequentialWritingAgent, WritingExecutionError
 from .tool import (
     AGENT_1_TOOLS,
     BASIC_TOOLS,
@@ -41,6 +42,9 @@ __all__ = [
     "GlobalPlannerAgent",
     "LiteratureAgent",
     "LiteratureIndexerAgent",
+    "WritingAgent",
+    "SequentialWritingAgent",
+    "WritingExecutionError",
     "Skill",
     "AgentState",
     # 状态机规范
