@@ -53,6 +53,9 @@ class PaperGlobalState(TypedDict, total=False):
     literature_search_report: Dict[str, Any]  # 检索轮次、关键词、来源诊断及中英文缺口
     publication_year_range: Optional[Dict[str, int]]  # 文献发表年份闭区间 start_year/end_year，可省略一端
     outline_plan: List[SectionPlan]        # 跨阶段共享的一至三级标题任务列表
+    writing_records: List[Dict[str, Any]]  # 已提交的累计接力记录：标题、摘要、完整正文、文件和资产路径
+    writing_manifest_path: str            # 撰写批次提交清单（支持原输入续跑）
+    writing_report: Dict[str, Any]         # 完成情况、批次接力及模型/工具调用统计
 
     # 3. 项目元信息
     project_id: str                   # 项目唯一标识

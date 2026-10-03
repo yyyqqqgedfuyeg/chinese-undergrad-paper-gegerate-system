@@ -20,6 +20,7 @@
 ```text
 ├── agent/              # 智能体核心实现（基类、排版智能体、工具库、WebUI服务）
 │   ├── output_parsers/ # 按 agent 拆分的输出数据结构、解析与业务校验
+│   ├── writing/        # 撰写节点接力、工具 loop、累计记录与批次落盘
 │   ├── web/            # WebUI 前端静态页面（Claude 极简风格）
 │   └── utils/          # 路径与环境工具
 ├── docs/               # 详细产品需求（PRD）、状态机规范、工作流设计文档
@@ -74,6 +75,109 @@ DEEPSEEK_MODEL=deepseek-chat
 ---
 
 ## 📄 详细文档
+
+### 顺序接力撰写 Agent
+
+`WritingAgent` 从现有 `outline_plan` 中按顺序领取叶子标题，每批最多 3 个；父标题
+只参与结构和完成状态计算。每批使用独立模型对话，内部执行有界的模型→工具→模型循环，
+批次通过校验并落盘后才进入下一批，全程不并行撰写。
+
+```python
+from agent import WritingAgent
+
+# state 已包含 topic、workspace_dir、single_source_of_truth、outline_plan、bib_pool。
+# workspace_dir 应当是这个项目本次生成专用的目录。
+writer = WritingAgent()  # 使用 .env 模型配置，自动加载项目 skills/*/SKILL.md
+writer.invoke(state)
+print(state["writing_report"])
+print(state["writing_manifest_path"])
+```
+
+`agent/writing/` 集中保存该模块的调度、输出结构、工具、提示词与提交逻辑。
+状态新增 `writing_records`（累计记录）、`writing_manifest_path` 和 `writing_report`。
+每条记录包含：
+
+```text
+section_id / title            具体标题及编号
+summary / key_facts           本节讲了什么、供后文承接的术语与论述
+content / content_path        完整 Markdown 正文及工作目录相对路径
+content_sha256 / node_index   正文校验摘要、产出批次
+assets                       图表标识、说明、类型、源代码路径和导出路径
+citations                    实际引用的文献 key
+```
+
+下一批获得所有历史记录的标题、摘要、关键事实和产物路径，以及上一节末尾 500 字；
+需要详细内容时通过 `read` 读取原文。完整正文仍累积保存在 state 和 manifest，
+但不会在每次模型调用时全量重复传输。这里的写作记录不会写回唯一事实源。
+
+节点默认拥有绑定本次工作目录的 `bash/read/write/edit` 工具。`bash` 可生成并运行
+绘图脚本、HTML 页面，调用本地浏览器或绘图库导出图片；进程使用当前 Python 环境，
+返回退出码和超时信息，不自动重放失败命令。绘图和截图需要运行环境具备相应依赖，
+系统提示会提供已检测到的 Python、Node 和浏览器路径。bash 是执行工具，并非系统沙箱。
+可通过 `skills=[Skill(...)]` 替换默认技能，或与
+`agent.writing.tools.load_project_skills()` 的结果合并；同名基础工具优先使用本次目录版本。
+
+正文保存到 `writing/sections/<section_id>.md`，图表源文件和导出图片放在
+`writing/assets/`。`writing/manifest.json` 是每批的提交点，记录产物和接力统计。
+程序检查标题是否完整且顺序正确、正文长度（目标的 60%-200%，按非空字符近似）、
+文献 key、规划图表覆盖、图表引用以及图片文件存在和签名。此检查不等同于学术语义审校。
+正文引用沿用 `[[REF_CITE:key]]`、`[[REF_FIG:id]]`、`[[REF_TABLE:id]]`，留给装配阶段编译。
+
+默认每批最多 12 次模型调用、30 次工具调用、2 次输出修复，可通过构造参数调整。
+失败批次不标记完成；此前已提交批次保留，重新用相同输入和工作目录调用即可续跑。
+再次调用已完成任务不会重复请求模型。事实源、大纲或文献池改变时需使用新工作目录，
+以免沿用旧上下文。同一工作目录不支持同时运行多个撰写任务。
+`writer.graph` 可作为 `PaperGlobalState` 子图嵌入上层图；直接嵌入时应按批次数设置
+上层 `recursion_limit`（建议至少 `4 + 2 * 批次数`，并加上上层节点数），`invoke` 会自动设置。
+
+验证命令（真实测试仅 4 节，每节约 180 字，覆盖 3+1 接力、状态图、网页和 PNG 导出）：
+
+```bash
+python -m unittest test.test_writing_agent -v
+python -m test.test_writing_agent_real
+```
+
+真实测试读取根目录 `.env`，产物及报告保存在 `test/render/writing-real-<timestamp>/`。
+为适应当前真实服务的 3 RPM 配额，验收脚本默认将模型请求间隔设为 21 秒；
+可用 `WRITING_TEST_REQUEST_INTERVAL` 调整。生产调用应按模型服务配额配置客户端限流与重试。
+
+#### 完整 DOCX 验收
+
+`test/test_writing_docx_real.py` 进一步覆盖 11 个叶子标题（3+3+3+2）、实际图表、完整论文、
+关键逻辑审查、DOCX 装配和 PDF 渲染。先运行 `test/writing_reference.py` 中的 SQLite 参考实现，
+验证状态、权限、时间边界、资源互斥，以及 20 轮两个独立连接的并发抢占；这些实际结果作为
+事实源输入模型。论文明确区分已运行的服务类、静态网页原型和未实现的生产能力。
+
+表格资产为 UTF-8 JSON，格式为 `{"columns":["列名"],"rows":[["字符串单元格"]]}`，
+导出时转为可编辑的原生 Word 三线表。图片嵌入 DOCX，图表引用转为书签与 REF 域，
+参考文献按正文首次出现顺序编排。导出器会核对所有正文片段、图表数量和表格单元格。
+
+```bash
+# DOCX 装配依赖（隔离安装，不影响 Python 依赖）
+npm install --prefix .tools/docx docx
+# PDF/页面预览还需系统安装 LibreOffice、Poppler 和中文字体（推荐 Noto CJK）。
+python -m unittest test.test_writing_agent test.test_writing_docx -v
+python -m test.test_writing_docx_real
+# 中断后使用打印出的运行目录续跑
+python -m test.test_writing_docx_real --workspace test/render/writing-docx-<timestamp>
+```
+
+完整测试优先读取 `.env` 的 `KIMI_*` 配置（存在时），否则使用 `DEEPSEEK_*`；报告记录
+实际 endpoint host 和 model，不用环境变量前缀冒充模型名称。通用撰写器默认使用 DeepSeek，
+可设置 `WRITING_MODEL_PROVIDER=KIMI` 或显式传入 `create_writing_model("KIMI")`。
+
+产物位于运行目录的 `output/`，包括 DOCX、PDF 和用于核查的纯文本；`preview/` 保存逐页 PNG。
+`semantic-review.json` 保存独立模型对七项关键逻辑的判断；`evidence/` 保留实际验证结果、
+参考实现源码和数据库文件。`docx-test-report.json` 记录机器检查结果，页面仍需打开目检，
+只有目检完成后才能将 `visual_review` 标记为通过。
+
+也可单独导出已有完整 state：
+
+```python
+from agent.writing import export_docx
+
+report = export_docx(state, "output/paper.docx", abstract="已核验的摘要内容", keywords=["预约", "一致性"])
+```
 
 ### 无工具大纲 Agent
 

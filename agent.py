@@ -14,6 +14,7 @@ from agent.state import (
 )
 from agent.outline_agent import OutlineAgent, GlobalPlannerAgent
 from agent.literature_agent import LiteratureAgent, LiteratureIndexerAgent
+from agent.writing import WritingAgent, SequentialWritingAgent, WritingExecutionError
 from agent.tool import (
     AGENT_1_TOOLS,
     BASIC_TOOLS,
@@ -43,6 +44,9 @@ __all__ = [
     "GlobalPlannerAgent",
     "LiteratureAgent",
     "LiteratureIndexerAgent",
+    "WritingAgent",
+    "SequentialWritingAgent",
+    "WritingExecutionError",
     "SectionPlan",
     "GlobalPlannerState",
     "PaperGlobalState",
