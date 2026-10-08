@@ -1,0 +1,76 @@
+{
+  "request": "原生脚注与自定义脚注样式；正文对表格、脚注和参考文献的交叉引用能力测试",
+  "skill": "skills/docx/SKILL.md",
+  "branch": "feat/improve-skill-capabilities",
+  "initial_findings": [
+    "旧skill只有新建文档的基础示例，没有现有模板脚注部件/关系维护脚本",
+    "未定义或实际应用脚注正文与标记样式",
+    "脚注重复引用没有NOTEREF与标记书签规范",
+    "没有前向引用、目标缺失、插入后的改号或PDF链接验收"
+  ],
+  "implemented": [
+    "notes_references.py: apply/inspect/refresh/pdf-input",
+    "保留源36种样式，新增两个可见且实际应用的脚注样式",
+    "native footnoteReference/footnoteRef with package relationships and separators",
+    "SEQ + paired bookmarks + REF/NOTEREF; duplicated label validation",
+    "按实际文档顺序刷新编号缓存并保留Word原生域；不计算分页",
+    "隔离的LibreOffice UNO PDF渲染；把渲染副本的脚注链接桥接为原生GetReference脚注对象",
+    "真实Agent产物完成后由运行器结束工具循环，随后独立验收，防止完成后继续循环"
+  ],
+  "real_api": {
+    "prefix": "KIMI",
+    "actual_host": "api.deepseek.com",
+    "model": "deepseek-flash",
+    "configuration_source": ".env (unchanged, credentials redacted)"
+  },
+  "runs": [
+    {
+      "run": "run-09",
+      "result": "agent generated valid footnotes/styles/references; detected LibreOffice NOTEREF non-evaluation and destructive roundtrip behavior"
+    },
+    {
+      "run": "run-10",
+      "result": "artifacts generated, agent exceeded recursion limit during repeated debugging; retained error log"
+    },
+    {
+      "run": "run-11",
+      "result": "runner completed; acceptance found duplicated 表 prefix in prose; added helper validation"
+    },
+    {
+      "run": "run-12",
+      "result": "real-agent generation + independent validation passed after PDF-only native-note bridge refinement",
+      "tool_calls": 15,
+      "duration_seconds": 36.699
+    }
+  ],
+  "acceptance": {
+    "report": "test/artifacts/template-skill/run-12/references-acceptance.json",
+    "passed": true,
+    "checks": 96,
+    "regression_tests": 19,
+    "style_count": 38,
+    "footnote_count": 2,
+    "additional_tables": 2,
+    "additional_bibliography_targets": 2,
+    "mutation": "earlier table/note/bibliography insertion changes original 1/2 to 2/3, including forward/repeated refs",
+    "base_pages": 11,
+    "mutation_pages": 12,
+    "visual_inspection": "final base test section page11 inspected; notes at page bottom, tables and text within margins"
+  },
+  "deliverable": "test/artifacts/template-skill/run-12/capability-refreshed.docx",
+  "logs": [
+    "test/artifacts/template-skill/run-12/agent-events.jsonl",
+    "test/artifacts/template-skill/run-12/agent-operations.txt",
+    "test/artifacts/template-skill/run-12/independent-validation.log",
+    "test/artifacts/template-skill/run-12/regression-tests.txt",
+    "test/artifacts/template-skill/run-12/mutation-refresh.json",
+    "test/artifacts/template-skill/run-12/render-base/field-refresh.json"
+  ],
+  "limitations": [
+    "No Microsoft Word UI/runtime validation",
+    "Required fonts unavailable; rendering uses substitutes",
+    "LibreOffice does not evaluate these NOTEREF fields and rewrites bookmark/style structure; roundtrip DOCX is diagnostic only",
+    "TOC and page field evaluation outside this test scope"
+  ],
+  "validation_scope": "Native DOCX structure/style/cache conformance and Linux render/PDF navigation. Microsoft Word UI/runtime and final school citation-content compliance were not tested. Bibliography targets are numbered entries, not citation-manager records. Source cached TOC is preserved."
+}

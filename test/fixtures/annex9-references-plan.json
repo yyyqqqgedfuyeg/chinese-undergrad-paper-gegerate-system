@@ -1,0 +1,170 @@
+{
+  "source_sha256": "715b21d5776fb835b43f56632e75e6cae02bcce3b6881775ed78fb88324a06c5",
+  "footnote_style": {
+    "east_asia_font": "宋体",
+    "latin_font": "Times New Roman",
+    "size_pt": 9,
+    "marker_size_pt": 9,
+    "line": 240
+  },
+  "blocks": [
+    {
+      "type": "paragraph",
+      "style": "PaperHeading1",
+      "page_break_before": true,
+      "inlines": [
+        "脚注与交叉引用能力测试"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "PaperBody",
+      "inlines": [
+        "演示数据的口径补充说明见脚注",
+        {
+          "footnote": {
+            "bookmark": "Note_TestA",
+            "text": "虚构演示脚注一：此处说明演示数据的口径，条目内容为虚构示例，仅用于核对脚注编号与字体行距。"
+          }
+        },
+        "，其中提到的取值均为便于核对的简单数字。第一组演示数据列于",
+        {
+          "ref": "Table_TestA"
+        },
+        "，可作为后续比较的基准。"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "PaperBody",
+      "inlines": [
+        "数据的来源与适用范围参照文献",
+        {
+          "ref": "Bib_TestA",
+          "superscript": true
+        },
+        "的说明，该条目以虚构演示文献的形式列出，不代表任何真实来源。"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "PaperBody",
+      "inlines": [
+        "后文再次提及前一条脚注的编号时使用交叉引用",
+        {
+          "ref": "Note_TestA",
+          "superscript": true
+        },
+        "，以便核对重复引用是否与原编号保持一致。第二组演示数据见",
+        {
+          "ref": "Table_TestB"
+        },
+        "，其构造方式另以脚注说明",
+        {
+          "footnote": {
+            "bookmark": "Note_TestB",
+            "text": "虚构演示脚注二：此处说明第二组演示数据的构造方式，内容为虚构示例，仅用于核对脚注编号与字体行距。"
+          }
+        },
+        "。"
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "PaperBody",
+      "inlines": [
+        "再次核对第二条脚注的编号",
+        {
+          "ref": "Note_TestB",
+          "superscript": true
+        },
+        "，并给出更完整的解释条目",
+        {
+          "ref": "Bib_TestB",
+          "superscript": true
+        },
+        "，其说明同样以虚构演示文献的形式列出。"
+      ]
+    },
+    {
+      "type": "caption",
+      "style": "PaperTableCaption",
+      "bookmark": "Table_TestA",
+      "sequence": "SkillTable",
+      "prefix": "表",
+      "text": "第一组演示数据"
+    },
+    {
+      "type": "table",
+      "style": "PaperTable1",
+      "text_style": "PaperTableText",
+      "column_widths": [
+        3600,
+        3680
+      ],
+      "rows": [
+        [
+          "演示指标",
+          "观测值"
+        ],
+        [
+          "指标一",
+          "1.00"
+        ],
+        [
+          "指标二",
+          "2.00"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "style": "PaperTableCaption",
+      "bookmark": "Table_TestB",
+      "sequence": "SkillTable",
+      "prefix": "表",
+      "text": "第二组演示数据"
+    },
+    {
+      "type": "table",
+      "style": "PaperTable1",
+      "text_style": "PaperTableText",
+      "column_widths": [
+        3600,
+        3680
+      ],
+      "rows": [
+        [
+          "演示项目",
+          "取值"
+        ],
+        [
+          "项目一",
+          "3.00"
+        ],
+        [
+          "项目二",
+          "4.00"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "style": "PaperReference",
+      "bookmark": "Bib_TestA",
+      "sequence": "SkillReference",
+      "prefix": "[",
+      "suffix": "]",
+      "text": "演示作者. 虚构演示文献：演示数据口径说明. 能力测试示例, 2024."
+    },
+    {
+      "type": "caption",
+      "style": "PaperReference",
+      "bookmark": "Bib_TestB",
+      "sequence": "SkillReference",
+      "prefix": "[",
+      "suffix": "]",
+      "text": "演示作者. 虚构演示文献：演示数据构造方式说明. 能力测试示例, 2024."
+    }
+  ]
+}
