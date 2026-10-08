@@ -1,0 +1,704 @@
+{
+  "mode": "replace_all",
+  "default_style": "PaperLayout",
+  "styles": [
+    {
+      "id": "PaperLayout",
+      "name": "论文空白段落",
+      "sample": {
+        "paragraph": 2
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperCoverTitle",
+      "name": "论文封面标题",
+      "sample": {
+        "paragraph": 4
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperCoverTopic",
+      "name": "论文封面题目",
+      "sample": {
+        "paragraph": 8
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperCoverInfo",
+      "name": "论文封面信息",
+      "sample": {
+        "paragraph": 13
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperDate",
+      "name": "论文日期",
+      "sample": {
+        "paragraph": 21
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperDeclarationTitle",
+      "name": "论文声明标题",
+      "sample": {
+        "paragraph": 24
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperDeclaration",
+      "name": "论文声明正文",
+      "sample": {
+        "paragraph": 26
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperSignature",
+      "name": "论文签名",
+      "sample": {
+        "paragraph": 34
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperTocTitle",
+      "name": "论文目录标题",
+      "sample": {
+        "paragraph": 53
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperToc1",
+      "name": "论文目录一级",
+      "sample": {
+        "paragraph": 55
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperToc2",
+      "name": "论文目录二级",
+      "sample": {
+        "paragraph": 60
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperToc3",
+      "name": "论文目录三级",
+      "sample": {
+        "paragraph": 61
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperChineseTitle",
+      "name": "论文中文题目",
+      "sample": {
+        "paragraph": 73
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperAbstract",
+      "name": "论文中文摘要",
+      "sample": {
+        "paragraph": 74
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperKeywords",
+      "name": "论文中文关键词",
+      "sample": {
+        "paragraph": 78
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperEnglishTitle",
+      "name": "论文英文题目",
+      "sample": {
+        "paragraph": 80
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperEnglishAbstract",
+      "name": "论文英文摘要",
+      "sample": {
+        "paragraph": 81
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperEnglishKeywords",
+      "name": "论文英文关键词",
+      "sample": {
+        "paragraph": 84
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperPrefaceTitle",
+      "name": "论文前言标题",
+      "sample": {
+        "paragraph": 87
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperChapter",
+      "name": "论文章标题",
+      "sample": {
+        "paragraph": 90
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "0"
+        }
+      }
+    },
+    {
+      "id": "PaperHeading1",
+      "name": "论文一级标题",
+      "sample": {
+        "paragraph": 91
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "0"
+        }
+      }
+    },
+    {
+      "id": "PaperHeading2",
+      "name": "论文二级标题",
+      "sample": {
+        "paragraph": 93
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "1"
+        }
+      }
+    },
+    {
+      "id": "PaperHeading3",
+      "name": "论文三级标题",
+      "sample": {
+        "paragraph": 96
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "2"
+        }
+      }
+    },
+    {
+      "id": "PaperBody",
+      "name": "论文正文",
+      "sample": {
+        "paragraph": 88
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperFigureCaption",
+      "name": "论文图题",
+      "sample": {
+        "paragraph": 102
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperTableCaption",
+      "name": "论文表题",
+      "sample": {
+        "paragraph": 106
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperReferenceTitle",
+      "name": "论文参考文献标题",
+      "sample": {
+        "paragraph": 112
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperReference",
+      "name": "论文参考文献正文",
+      "sample": {
+        "paragraph": 113
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperThanksTitle",
+      "name": "论文致谢标题",
+      "sample": {
+        "paragraph": 120
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperThanks",
+      "name": "论文致谢正文",
+      "sample": {
+        "paragraph": 121
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperAppendixTitle",
+      "name": "论文附录标题",
+      "sample": {
+        "paragraph": 137
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperAppendix",
+      "name": "论文附录正文",
+      "sample": {
+        "paragraph": 140
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperTableText",
+      "name": "论文表格文字",
+      "sample": {
+        "scope": "table",
+        "paragraph": 0
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperHeader",
+      "name": "论文页眉",
+      "sample": {
+        "part": "word/header1.xml",
+        "paragraph": 1
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    },
+    {
+      "id": "PaperFooter",
+      "name": "论文页脚",
+      "sample": {
+        "part": "word/footer1.xml",
+        "paragraph": 0
+      },
+      "paragraph_properties": {
+        "outlineLvl": {
+          "val": "9"
+        }
+      }
+    }
+  ],
+  "assignments": [
+    {
+      "style": "PaperCoverTitle",
+      "paragraphs": [
+        4
+      ]
+    },
+    {
+      "style": "PaperCoverTopic",
+      "paragraphs": [
+        8
+      ]
+    },
+    {
+      "style": "PaperCoverInfo",
+      "paragraphs": [
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "style": "PaperDate",
+      "paragraphs": [
+        21,
+        37
+      ]
+    },
+    {
+      "style": "PaperDeclarationTitle",
+      "paragraphs": [
+        24
+      ]
+    },
+    {
+      "style": "PaperDeclaration",
+      "paragraphs": [
+        26
+      ]
+    },
+    {
+      "style": "PaperSignature",
+      "paragraphs": [
+        34
+      ]
+    },
+    {
+      "style": "PaperTocTitle",
+      "paragraphs": [
+        53
+      ]
+    },
+    {
+      "style": "PaperToc1",
+      "paragraphs": [
+        55,
+        56,
+        57,
+        58,
+        59,
+        62,
+        65,
+        66,
+        67
+      ]
+    },
+    {
+      "style": "PaperToc2",
+      "paragraphs": [
+        60,
+        63
+      ]
+    },
+    {
+      "style": "PaperToc3",
+      "paragraphs": [
+        61,
+        64
+      ]
+    },
+    {
+      "style": "PaperChineseTitle",
+      "paragraphs": [
+        73
+      ]
+    },
+    {
+      "style": "PaperAbstract",
+      "paragraphs": [
+        74
+      ]
+    },
+    {
+      "style": "PaperKeywords",
+      "paragraphs": [
+        78
+      ]
+    },
+    {
+      "style": "PaperEnglishTitle",
+      "paragraphs": [
+        80
+      ]
+    },
+    {
+      "style": "PaperEnglishAbstract",
+      "paragraphs": [
+        81
+      ]
+    },
+    {
+      "style": "PaperEnglishKeywords",
+      "paragraphs": [
+        84
+      ]
+    },
+    {
+      "style": "PaperPrefaceTitle",
+      "paragraphs": [
+        87
+      ]
+    },
+    {
+      "style": "PaperChapter",
+      "paragraphs": [
+        90
+      ]
+    },
+    {
+      "style": "PaperHeading1",
+      "paragraphs": [
+        91
+      ]
+    },
+    {
+      "style": "PaperHeading2",
+      "paragraphs": [
+        93
+      ]
+    },
+    {
+      "style": "PaperHeading3",
+      "paragraphs": [
+        96
+      ]
+    },
+    {
+      "style": "PaperBody",
+      "paragraphs": [
+        88,
+        92,
+        94,
+        97
+      ]
+    },
+    {
+      "style": "PaperFigureCaption",
+      "paragraphs": [
+        102
+      ]
+    },
+    {
+      "style": "PaperTableCaption",
+      "paragraphs": [
+        106
+      ]
+    },
+    {
+      "style": "PaperReferenceTitle",
+      "paragraphs": [
+        112
+      ]
+    },
+    {
+      "style": "PaperReference",
+      "paragraphs": [
+        113,
+        114
+      ]
+    },
+    {
+      "style": "PaperThanksTitle",
+      "paragraphs": [
+        120
+      ]
+    },
+    {
+      "style": "PaperThanks",
+      "paragraphs": [
+        121
+      ]
+    },
+    {
+      "style": "PaperAppendixTitle",
+      "paragraphs": [
+        137
+      ]
+    },
+    {
+      "style": "PaperAppendix",
+      "paragraphs": [
+        140
+      ]
+    },
+    {
+      "style": "PaperTableText",
+      "scope": "table",
+      "paragraphs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "style": "PaperHeader",
+      "part": "word/header1.xml",
+      "paragraphs": [
+        0,
+        1
+      ]
+    },
+    {
+      "style": "PaperFooter",
+      "part": "word/footer1.xml",
+      "paragraphs": [
+        0,
+        1
+      ]
+    },
+    {
+      "style": "PaperFooter",
+      "part": "word/footer2.xml",
+      "paragraphs": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "style": "PaperFooter",
+      "part": "word/footer3.xml",
+      "paragraphs": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "style": "PaperFooter",
+      "part": "word/footer4.xml",
+      "paragraphs": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "style": "PaperFooter",
+      "part": "word/footer5.xml",
+      "paragraphs": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

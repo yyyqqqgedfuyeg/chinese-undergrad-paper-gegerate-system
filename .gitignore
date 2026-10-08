@@ -51,6 +51,7 @@ logs/
 *.doc
 *.pdf
 test/render/
+test/artifacts/
 test/test_paper_draft.md
 葵花宝典.txt
 

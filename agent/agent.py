@@ -178,8 +178,8 @@ class BaseReActAgent:
             self.compile()
 
     @staticmethod
-    def _create_default_llm(temperature: Optional[float] = 0.3) -> ChatOpenAI:
-        """从环境变量读取 DeepSeek 配置构建 ChatOpenAI"""
+    def _create_default_llm(temperature: Optional[float] = None) -> ChatOpenAI:
+        """从环境变量构建兼容模型；默认省略温度，采用服务端支持的默认值。"""
         api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
         base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip()
         model_name = os.getenv("DEEPSEEK_MODEL", "deepseek-flash").strip()

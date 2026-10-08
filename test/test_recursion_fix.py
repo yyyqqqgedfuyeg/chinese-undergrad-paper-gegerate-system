@@ -34,10 +34,10 @@ def test_agent_defaults():
     assert merged_config["configurable"]["thread_id"] == "test_session"
     print(f"   [PASS] merged_config 成功自动注入: {merged_config}")
 
-    print("4. 检查 docx_agent 提示词中是否已加入反死循环与收敛纪律...")
-    prompt = agent.inner_sys_prompt
-    assert "防止多轮死循环" in prompt or "高效收敛与快速交付" in prompt, "未检测到提示词防死循环准则！"
-    print("   [PASS] docx_agent.inner_sys_prompt 包含明确防死循环与收敛准则。")
+    print("4. 检查最小工具与 docx skill 实际挂载...")
+    assert {t.name for t in agent.get_all_tools()} == {"bash", "read", "write", "edit"}
+    assert [s.name for s in agent.get_skills()] == ["docx-skill"]
+    print("   [PASS] 四个基础工具和 docx skill 挂载成功。")
 
     print("\n全部静态与配置项验证通过！")
 

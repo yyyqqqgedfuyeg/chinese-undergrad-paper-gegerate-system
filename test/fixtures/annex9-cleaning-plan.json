@@ -1,0 +1,1677 @@
+{
+  "source_sha256": "faa3bedd26a72ce80ab171963c1618b193c79dd21dfb51fd4cfa9609367de533",
+  "source": "test/tmp/附件9 正文格式模板.docx",
+  "style_rebuild": {
+    "mode": "replace_all",
+    "default_style": "PaperLayout",
+    "styles": [
+      {
+        "id": "PaperLayout",
+        "name": "论文空白段落",
+        "sample": {
+          "paragraph": 2
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperCoverTitle",
+        "name": "论文封面标题",
+        "sample": {
+          "paragraph": 4
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperCoverTopic",
+        "name": "论文封面题目",
+        "sample": {
+          "paragraph": 8
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperCoverInfo",
+        "name": "论文封面信息",
+        "sample": {
+          "paragraph": 13
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperDate",
+        "name": "论文日期",
+        "sample": {
+          "paragraph": 21
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperDeclarationTitle",
+        "name": "论文声明标题",
+        "sample": {
+          "paragraph": 24
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperDeclaration",
+        "name": "论文声明正文",
+        "sample": {
+          "paragraph": 26
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperSignature",
+        "name": "论文签名",
+        "sample": {
+          "paragraph": 34
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperTocTitle",
+        "name": "论文目录标题",
+        "sample": {
+          "paragraph": 53
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperToc1",
+        "name": "论文目录一级",
+        "sample": {
+          "paragraph": 55
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperToc2",
+        "name": "论文目录二级",
+        "sample": {
+          "paragraph": 60
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperToc3",
+        "name": "论文目录三级",
+        "sample": {
+          "paragraph": 61
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperChineseTitle",
+        "name": "论文中文题目",
+        "sample": {
+          "paragraph": 73
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperAbstract",
+        "name": "论文中文摘要",
+        "sample": {
+          "paragraph": 74
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperKeywords",
+        "name": "论文中文关键词",
+        "sample": {
+          "paragraph": 78
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperEnglishTitle",
+        "name": "论文英文题目",
+        "sample": {
+          "paragraph": 80
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperEnglishAbstract",
+        "name": "论文英文摘要",
+        "sample": {
+          "paragraph": 81
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperEnglishKeywords",
+        "name": "论文英文关键词",
+        "sample": {
+          "paragraph": 84
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperPrefaceTitle",
+        "name": "论文前言标题",
+        "sample": {
+          "paragraph": 87
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperChapter",
+        "name": "论文章标题",
+        "sample": {
+          "paragraph": 90
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "0"
+          }
+        }
+      },
+      {
+        "id": "PaperHeading1",
+        "name": "论文一级标题",
+        "sample": {
+          "paragraph": 91
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "0"
+          }
+        }
+      },
+      {
+        "id": "PaperHeading2",
+        "name": "论文二级标题",
+        "sample": {
+          "paragraph": 93
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "1"
+          }
+        }
+      },
+      {
+        "id": "PaperHeading3",
+        "name": "论文三级标题",
+        "sample": {
+          "paragraph": 96
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "2"
+          }
+        }
+      },
+      {
+        "id": "PaperBody",
+        "name": "论文正文",
+        "sample": {
+          "paragraph": 88
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperFigureCaption",
+        "name": "论文图题",
+        "sample": {
+          "paragraph": 102
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperTableCaption",
+        "name": "论文表题",
+        "sample": {
+          "paragraph": 106
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperReferenceTitle",
+        "name": "论文参考文献标题",
+        "sample": {
+          "paragraph": 112
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperReference",
+        "name": "论文参考文献正文",
+        "sample": {
+          "paragraph": 113
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperThanksTitle",
+        "name": "论文致谢标题",
+        "sample": {
+          "paragraph": 120
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperThanks",
+        "name": "论文致谢正文",
+        "sample": {
+          "paragraph": 121
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperAppendixTitle",
+        "name": "论文附录标题",
+        "sample": {
+          "paragraph": 137
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperAppendix",
+        "name": "论文附录正文",
+        "sample": {
+          "paragraph": 140
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperTableText",
+        "name": "论文表格文字",
+        "sample": {
+          "scope": "table",
+          "paragraph": 0
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperHeader",
+        "name": "论文页眉",
+        "sample": {
+          "part": "word/header1.xml",
+          "paragraph": 1
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      },
+      {
+        "id": "PaperFooter",
+        "name": "论文页脚",
+        "sample": {
+          "part": "word/footer1.xml",
+          "paragraph": 0
+        },
+        "paragraph_properties": {
+          "outlineLvl": {
+            "val": "9"
+          }
+        }
+      }
+    ],
+    "assignments": [
+      {
+        "style": "PaperCoverTitle",
+        "paragraphs": [
+          4
+        ]
+      },
+      {
+        "style": "PaperCoverTopic",
+        "paragraphs": [
+          8
+        ]
+      },
+      {
+        "style": "PaperCoverInfo",
+        "paragraphs": [
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      },
+      {
+        "style": "PaperDate",
+        "paragraphs": [
+          21,
+          37
+        ]
+      },
+      {
+        "style": "PaperDeclarationTitle",
+        "paragraphs": [
+          24
+        ]
+      },
+      {
+        "style": "PaperDeclaration",
+        "paragraphs": [
+          26
+        ]
+      },
+      {
+        "style": "PaperSignature",
+        "paragraphs": [
+          34
+        ]
+      },
+      {
+        "style": "PaperTocTitle",
+        "paragraphs": [
+          53
+        ]
+      },
+      {
+        "style": "PaperToc1",
+        "paragraphs": [
+          55,
+          56,
+          57,
+          58,
+          59,
+          62,
+          65,
+          66,
+          67
+        ]
+      },
+      {
+        "style": "PaperToc2",
+        "paragraphs": [
+          60,
+          63
+        ]
+      },
+      {
+        "style": "PaperToc3",
+        "paragraphs": [
+          61,
+          64
+        ]
+      },
+      {
+        "style": "PaperChineseTitle",
+        "paragraphs": [
+          73
+        ]
+      },
+      {
+        "style": "PaperAbstract",
+        "paragraphs": [
+          74
+        ]
+      },
+      {
+        "style": "PaperKeywords",
+        "paragraphs": [
+          78
+        ]
+      },
+      {
+        "style": "PaperEnglishTitle",
+        "paragraphs": [
+          80
+        ]
+      },
+      {
+        "style": "PaperEnglishAbstract",
+        "paragraphs": [
+          81
+        ]
+      },
+      {
+        "style": "PaperEnglishKeywords",
+        "paragraphs": [
+          84
+        ]
+      },
+      {
+        "style": "PaperPrefaceTitle",
+        "paragraphs": [
+          87
+        ]
+      },
+      {
+        "style": "PaperChapter",
+        "paragraphs": [
+          90
+        ]
+      },
+      {
+        "style": "PaperHeading1",
+        "paragraphs": [
+          91
+        ]
+      },
+      {
+        "style": "PaperHeading2",
+        "paragraphs": [
+          93
+        ]
+      },
+      {
+        "style": "PaperHeading3",
+        "paragraphs": [
+          96
+        ]
+      },
+      {
+        "style": "PaperBody",
+        "paragraphs": [
+          88,
+          92,
+          94,
+          97
+        ]
+      },
+      {
+        "style": "PaperFigureCaption",
+        "paragraphs": [
+          102
+        ]
+      },
+      {
+        "style": "PaperTableCaption",
+        "paragraphs": [
+          106
+        ]
+      },
+      {
+        "style": "PaperReferenceTitle",
+        "paragraphs": [
+          112
+        ]
+      },
+      {
+        "style": "PaperReference",
+        "paragraphs": [
+          113,
+          114
+        ]
+      },
+      {
+        "style": "PaperThanksTitle",
+        "paragraphs": [
+          120
+        ]
+      },
+      {
+        "style": "PaperThanks",
+        "paragraphs": [
+          121
+        ]
+      },
+      {
+        "style": "PaperAppendixTitle",
+        "paragraphs": [
+          137
+        ]
+      },
+      {
+        "style": "PaperAppendix",
+        "paragraphs": [
+          140
+        ]
+      },
+      {
+        "style": "PaperTableText",
+        "scope": "table",
+        "paragraphs": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "style": "PaperHeader",
+        "part": "word/header1.xml",
+        "paragraphs": [
+          0,
+          1
+        ]
+      },
+      {
+        "style": "PaperFooter",
+        "part": "word/footer1.xml",
+        "paragraphs": [
+          0,
+          1
+        ]
+      },
+      {
+        "style": "PaperFooter",
+        "part": "word/footer2.xml",
+        "paragraphs": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "style": "PaperFooter",
+        "part": "word/footer3.xml",
+        "paragraphs": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "style": "PaperFooter",
+        "part": "word/footer4.xml",
+        "paragraphs": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "style": "PaperFooter",
+        "part": "word/footer5.xml",
+        "paragraphs": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "除说明性/示例文字外不修改其它部件；styles/theme/media/footer/relationships 等保持原字节；本次额外编辑页眉部件 word/header1.xml 的示例题目（学校名称与页眉结构保留）。",
+    "保留的静态内容：封面校名标题「本 科 生 毕 业 设 计」、声明正文、目录域、各栏目标签、章节/条目编号（第一章、1、1.1、1.1.1、[1]、图1-3、表1-5）、封面与声明的「年 月 日」手写空位、页眉中的学校名称「海口经济学院毕业设计：」、页脚、2 张示例图片与表格结构。",
+    "未明确规定的标题样式（章标题、一/二/三级标题、前言、参考文献、致谢、附录标题）按源文件保留，不臆造字号。",
+    "页眉 word/header1.xml（仅有该页眉部件、仅 1 处示例题目）中的「毕业设计题目」为模板示例题目，与封面题目/中文论题重复，按 skills/docx/references/template-replication.md「页眉题目需包含并替换为占位符」替换为 {{页眉题目}}；学校名称「海口经济学院毕业设计：」与 run 格式（rFonts hint=eastAsia, sz/szCs=21）保留。",
+    "英文摘要(段81)与英文关键词(段84)因继承分节字符网格(linesAndChars)导致英文长文本首行字符分散、越过右边界：仅在这两个段落显式设 paragraph_properties.snapToGrid=0 恢复自然换行（1.5 倍行距、Times New Roman 12pt、源分节网格定义与其它部件均保留），见 conflicts。"
+  ],
+  "content_requirements": {
+    "中文摘要/正文": "宋体、小四(12pt)、1.5 倍行距；摘要为完整段落。",
+    "英文摘要": "Times New Roman、小四(12pt)、1.5 倍行距。",
+    "中文关键词": [
+      "至少 5 个",
+      "不能成句",
+      "中文分号「；」分隔"
+    ],
+    "英文关键词": [
+      "至少 5 个",
+      "不能成句",
+      "英文分号「;」分隔"
+    ],
+    "参考文献": [
+      "不少于 15 篇",
+      "其中外文资料至少 1 篇"
+    ],
+    "图表题注": [
+      "图题置于图的正下方，宋体、小五(9pt)",
+      "表题置于表的正上方，宋体、小五(9pt)"
+    ],
+    "封面": [
+      "题目：三号(16pt)黑体",
+      "姓名/学号/所在学院/专业班级/指导教师：小三(15pt)楷体"
+    ],
+    "目录": "含 TOC 域( \\o \"1-3\" \\h \\z \\u )；示例页码为域缓存，须在 Word 中「更新目录」后才是最终页码。",
+    "附录": "包含设计实施过程中的重点、典型编码等内容。",
+    "演示值说明": "filled-demo.docx 的填写内容仅用于验证占位符可填写，不代表成稿论文满足上述内容与数量约束。"
+  },
+  "conflicts": [
+    {
+      "paragraph": 74,
+      "observed": "spacing line=578 lineRule=auto（≈2.4 倍行距，before 340/after 330）",
+      "required": "文字说明「宋体、小四,1.5倍行间距」",
+      "decision": "采用 1.5 倍：line=360 auto，并写回原 before/after 属性；run 采用宋体 sz24。"
+    },
+    {
+      "paragraph": 88,
+      "observed": "spacing line=400 lineRule=exact（固定 20pt）",
+      "required": "文字说明 1.5 倍行间距",
+      "decision": "采用 1.5 倍：line=360 auto；其它未说明属性（缩进/jc）保留。"
+    },
+    {
+      "paragraph": 94,
+      "observed": "spacing line=400 lineRule=exact",
+      "required": "文字说明 1.5 倍行间距",
+      "decision": "采用 1.5 倍：line=360 auto。"
+    },
+    {
+      "paragraph": 97,
+      "observed": "spacing line=400 lineRule=exact",
+      "required": "文字说明 1.5 倍行间距",
+      "decision": "采用 1.5 倍：line=360 auto。"
+    },
+    {
+      "paragraph": 121,
+      "observed": "spacing line=400 lineRule=exact",
+      "required": "文字说明 1.5 倍行间距",
+      "decision": "采用 1.5 倍：line=360 auto。"
+    },
+    {
+      "paragraph": 140,
+      "observed": "spacing line=400 lineRule=exact；说明仅写「（宋体、小四）」",
+      "required": "未规定行距",
+      "decision": "继承源文档行距(400 exact)，只按说明校正 run 为宋体小四。"
+    },
+    {
+      "paragraph": 8,
+      "observed": "run 直接属性仅 hint=eastAsia，asiam/hAnsi 继承 Times New Roman、eastAsia 继承宋体（样式1）；sz=32（三号，符合）",
+      "required": "封面题目「三号字 黑体」",
+      "decision": "按明确说明设 rFonts=黑体（ascii/hAnsi/eastAsia/cs）、sz=32；下划线 u=single 保留（填写区下划线视觉）。"
+    },
+    {
+      "paragraph": 13,
+      "observed": "sz=32（三号，16pt）、ascii/hAnsi=宋体；楷体要求未满足",
+      "required": "封面姓名等「小三号 楷体」",
+      "decision": "按明确说明设 rFonts=楷体、sz=30（小三 15pt）,szCs=30（段落 14/15/16/17 同）。"
+    },
+    {
+      "paragraph": 102,
+      "observed": "题注 run color=FF0000（红色说明），sz=18（小五，符合）、宋体（符合）",
+      "required": "图表题内容按小五 9pt 宋体并清除红色",
+      "decision": "字形字号沿用（宋体 sz18），占位符 run 显式设 color=000000；段落 106 同。"
+    },
+    {
+      "paragraph": 74,
+      "observed": "「摘  要」标签 run 为黑体 sz24",
+      "required": "正文内容要求「宋体、小四」",
+      "decision": "标签 run 保留黑体（参考资料允许保留摘要/关键词标签原格式）；仅内容占位符 run 为宋体小四。段落 78/81/84 同。"
+    },
+    {
+      "paragraph": 59,
+      "observed": "目录条目页码为 TOC 域缓存（如「第二章…3」），与正文实际页码无关",
+      "required": "保留域与页码缓存",
+      "decision": "保留 TOC 域、超链接与缓存数字，仅把示例叉号改为占位符；最终页码需在 Word 中更新域。"
+    },
+    {
+      "paragraph": 81,
+      "observed": "段落直接 pPr 仅有 pStyle=2、spacing line=360 auto、jc=both；所在分节 sectPr 定义 w:docGrid type=\"linesAndChars\" linePitch=312 charSpace=10，段落未覆盖 snapToGrid，12pt 英文长文本吸附字符网格后首行字符分散且越过右边界（源模板示例仅 20 个星号，未暴露该问题）",
+      "required": "文字说明仅规定「Times New Roman、小四,1.5倍行间距」，未规定网格行为",
+      "decision": "按 skill 参考资料（模板含字符网格时的英文段处理）在本段显式设 snapToGrid=0，只关闭该段网格吸附：换行恢复正常，行距仍 1.5 倍(360 auto)、字体仍 Times New Roman 12pt(sz24)、分节 docGrid 定义与其它格式字节保留；不缩短示例填写值，不改标题样式（pStyle=2 与 outlineLvl 不动）。"
+    },
+    {
+      "paragraph": 84,
+      "observed": "段落直接 pPr 仅有 pStyle=2、spacing line=360 auto、jc=both；同分区 sectPr 的 docGrid type=\"linesAndChars\" 使英文关键词行按网格排布，出现首行字符分散与右边界越界",
+      "required": "文字说明仅规定「Times New Roman、小四,1.5倍行间距，至少5个，不能成句，英文分号分隔」，未规定网格行为",
+      "decision": "与段落 81 一致，仅在本段设 snapToGrid=0；关键词数量/分隔要求由 values.json 满足，不缩短英文填写值。"
+    }
+  ],
+  "limitations": [
+    "字体名与样式定义已存储，但不打包字体文件；本机 fc-match 无 宋体/黑体/楷体/Times New Roman 原字体（→ Noto Serif CJK SC / DejaVu 系替代），渲染结果不等于 Word 原字体像素。",
+    "run 属性为原始记录，非完整 Word 级联；主题字体/字符样式切换需结合渲染判断。",
+    "目录页码为域缓存，验收时需在 Word/排版程序中更新目录。",
+    "页眉题目已清洗为 {{页眉题目}}；其填写值须与 {{中文论文题目}}/{{封面题目}} 保持一致，由 values.json 保证，脚本不校验语义一致性。",
+    "snapToGrid=0 的版面修复以本机 LibreOffice 渲染（已发生字体替代：Times New Roman→Liberation Serif）作为换行/右边界证据；Word 中真实字体的换行像素可能略有差异，但该段已不吸附字符网格、按 12pt 自然排版。"
+  ],
+  "edits": [
+    {
+      "paragraph": 8,
+      "expected_text": "题目：        （三号字 黑体）       ",
+      "evidence": "封面「题目：」后的下划线空位与说明括号「（三号字 黑体）」是填写指导，按说明改为三号(16pt, sz32)黑体占位符；下划线(u)属性沿用源run。",
+      "replacements": [
+        {
+          "old": "        （三号字 黑体）       ",
+          "new": "{{封面题目}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "黑体",
+              "hAnsi": "黑体",
+              "eastAsia": "黑体",
+              "cs": "黑体"
+            },
+            "sz": {
+              "val": "32"
+            },
+            "szCs": {
+              "val": "32"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 13,
+      "expected_text": "姓    名：   （小三号 楷体） ",
+      "evidence": "封面信息栏说明括号「（小三号 楷体）」是填写指导，按说明改为小三(15pt, sz30)楷体占位符；栏目标签「姓    名：」等保留。",
+      "replacements": [
+        {
+          "old": "   （小三号 楷体） ",
+          "new": "{{学生姓名}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "楷体",
+              "hAnsi": "楷体",
+              "eastAsia": "楷体",
+              "cs": "楷体"
+            },
+            "sz": {
+              "val": "30"
+            },
+            "szCs": {
+              "val": "30"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 14,
+      "expected_text": "学    号：   （小三号 楷体）",
+      "evidence": "封面信息栏说明括号「（小三号 楷体）」是填写指导，按说明改为小三(15pt, sz30)楷体占位符；栏目标签「姓    名：」等保留。",
+      "replacements": [
+        {
+          "old": "   （小三号 楷体）",
+          "new": "{{学号}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "楷体",
+              "hAnsi": "楷体",
+              "eastAsia": "楷体",
+              "cs": "楷体"
+            },
+            "sz": {
+              "val": "30"
+            },
+            "szCs": {
+              "val": "30"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 15,
+      "expected_text": "所在学院：   （小三号 楷体）",
+      "evidence": "封面信息栏说明括号「（小三号 楷体）」是填写指导，按说明改为小三(15pt, sz30)楷体占位符；栏目标签「姓    名：」等保留。",
+      "replacements": [
+        {
+          "old": "   （小三号 楷体）",
+          "new": "{{学院}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "楷体",
+              "hAnsi": "楷体",
+              "eastAsia": "楷体",
+              "cs": "楷体"
+            },
+            "sz": {
+              "val": "30"
+            },
+            "szCs": {
+              "val": "30"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 16,
+      "expected_text": "专业班级：   （小三号 楷体）",
+      "evidence": "封面信息栏说明括号「（小三号 楷体）」是填写指导，按说明改为小三(15pt, sz30)楷体占位符；栏目标签「姓    名：」等保留。",
+      "replacements": [
+        {
+          "old": "   （小三号 楷体）",
+          "new": "{{专业班级}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "楷体",
+              "hAnsi": "楷体",
+              "eastAsia": "楷体",
+              "cs": "楷体"
+            },
+            "sz": {
+              "val": "30"
+            },
+            "szCs": {
+              "val": "30"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 17,
+      "expected_text": "         指导教师：   （小三号 楷体）",
+      "evidence": "封面信息栏说明括号「（小三号 楷体）」是填写指导，按说明改为小三(15pt, sz30)楷体占位符；栏目标签「姓    名：」等保留。",
+      "replacements": [
+        {
+          "old": "   （小三号 楷体）",
+          "new": "{{指导教师}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "楷体",
+              "hAnsi": "楷体",
+              "eastAsia": "楷体",
+              "cs": "楷体"
+            },
+            "sz": {
+              "val": "30"
+            },
+            "szCs": {
+              "val": "30"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 73,
+      "expected_text": "中文论题",
+      "evidence": "「中文论题」是摘要页示例题目文本（英文页对应「英文论题」），替换为唯一占位符；题目样式按源文件保留（黑体 小三 sz30）。",
+      "replacements": [
+        {
+          "old": "中文论题",
+          "new": "{{中文论文题目}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 74,
+      "expected_text": "摘  要：********************（宋体、小四,1.5倍行间距）",
+      "evidence": "「****…（宋体、小四,1.5倍行间距）」是摘要示例与格式说明，替换为占位符并清除红色说明；内容run按说明校正为宋体小四(sz24)，段落行距由578(auto)校正为1.5倍(360 auto)。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{中文摘要}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "spacing": {
+          "before": "340",
+          "beforeLines": "0",
+          "after": "330",
+          "afterLines": "0",
+          "line": "360",
+          "lineRule": "auto"
+        }
+      }
+    },
+    {
+      "paragraph": 78,
+      "expected_text": "关键词：********************（宋体、小四,1.5倍行间距，至少5个，不能成句，中文分号分隔）",
+      "evidence": "关键词说明括号（含「至少5个，不能成句，中文分号分隔」）为填写指导，替换为占位符并清除红色；内容run校正为宋体小四；「关键词」标签run原为黑体，按参考资料保留标签格式。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距，至少5个，不能成句，中文分号分隔）",
+          "new": "{{中文关键词}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 80,
+      "expected_text": "英文论题",
+      "evidence": "「英文论题」是示例题目文本，替换为唯一占位符；标题样式按源文件保留。",
+      "replacements": [
+        {
+          "old": "英文论题",
+          "new": "{{英文论文题目}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 81,
+      "expected_text": "Abstract:********************（Times New Roman、小四,1.5倍行间距）",
+      "evidence": "「Abstract:」后的示例与说明括号（Times New Roman、小四,1.5倍行间距）替换为英文摘要占位符；内容run校正为Times New Roman 小四(sz24)并清除红色。本段继承分节字符网格（sectPr docGrid type=linesAndChars，charSpace=10），模板原本只有 20 个星号的短示例，未暴露网格问题；按说明以 12pt/1.5 倍填写英文长文本后，网格吸附导致首行字符分散、文字越过右边界。故在本段显式关闭网格吸附 snapToGrid=0（仅本段，分节 docGrid 定义保留），不缩短填写值、不改标题样式。",
+      "replacements": [
+        {
+          "old": "********************（Times New Roman、小四,1.5倍行间距）",
+          "new": "{{英文摘要}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "default",
+              "ascii": "Times New Roman",
+              "hAnsi": "Times New Roman",
+              "eastAsia": "宋体",
+              "cs": "Times New Roman"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "snapToGrid": {
+          "val": "0"
+        }
+      }
+    },
+    {
+      "paragraph": 84,
+      "expected_text": "Keywords:********************（Times New Roman、小四,1.5倍行间距，至少5个，不能成句，英文分号分隔）",
+      "evidence": "Keywords 示例与说明括号（至少5个，英文分号分隔）为填写指导，替换为占位符；内容run校正为Times New Roman 小四并清除红色。与英文摘要同因：本段继承分节字符网格（docGrid type=linesAndChars），英文长关键词表按网格对齐会出现字间距异常/越界，故显式设 snapToGrid=0，仅作用于本段，保留分节网格、1.5 倍行距(360 auto)与 Times New Roman 12pt。",
+      "replacements": [
+        {
+          "old": "********************（Times New Roman、小四,1.5倍行间距，至少5个，不能成句，英文分号分隔）",
+          "new": "{{英文关键词}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "default",
+              "ascii": "Times New Roman",
+              "hAnsi": "Times New Roman",
+              "eastAsia": "宋体",
+              "cs": "Times New Roman"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "snapToGrid": {
+          "val": "0"
+        }
+      }
+    },
+    {
+      "paragraph": 88,
+      "expected_text": "    ********************（宋体、小四,1.5倍行间距）",
+      "evidence": "前言示例文本与说明括号替换为占位符；内容run校正为宋体小四；段落行距由400(exact)校正为1.5倍(360 auto)。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{前言正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "spacing": {
+          "line": "360",
+          "lineRule": "auto"
+        }
+      }
+    },
+    {
+      "paragraph": 90,
+      "expected_text": "第一章  ********",
+      "evidence": "章标题中的「********」为示例标题文本，替换为占位符；未明确规定的标题样式按源文件保留（黑体 sz32，未改run属性）。",
+      "replacements": [
+        {
+          "old": "********",
+          "new": "{{第一章标题}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 91,
+      "expected_text": "1  ××××××（一级目录格式参照此处）",
+      "evidence": "一级标题示例「××××××」+红色说明「（一级目录格式参照此处）」替换为占位符，保留编号「1  」；标题样式按源文件保留。",
+      "replacements": [
+        {
+          "old": "××××××（一级目录格式参照此处）",
+          "new": "{{一级标题1}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 92,
+      "expected_text": "    ********************（宋体、小四,1.5倍行间距）",
+      "evidence": "正文示例文本与格式说明替换为占位符；内容run校正为宋体小四；行距源文件已是360 auto（1.5倍），未修改。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{一级标题1正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 93,
+      "expected_text": "1.1  ××××××（二级目录格式参照此处）",
+      "evidence": "二级标题示例+红色说明替换为占位符，保留编号「1.1  」。",
+      "replacements": [
+        {
+          "old": "××××××（二级目录格式参照此处）",
+          "new": "{{二级标题1}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 94,
+      "expected_text": "    ********************（宋体、小四,1.5倍行间距）",
+      "evidence": "正文示例文本与格式说明替换为占位符；内容run校正为宋体小四；行距由400(exact)校正为1.5倍(360 auto)。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{二级标题1正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "spacing": {
+          "line": "360",
+          "lineRule": "auto"
+        }
+      }
+    },
+    {
+      "paragraph": 96,
+      "expected_text": "1.1.1  ××××××××（三级目录格式参照此处）",
+      "evidence": "三级标题示例+红色说明替换为占位符，保留编号「1.1.1  」。",
+      "replacements": [
+        {
+          "old": "××××××××（三级目录格式参照此处）",
+          "new": "{{三级标题1}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 97,
+      "expected_text": "********************（宋体、小四,1.5倍行间距）",
+      "evidence": "正文示例文本与格式说明替换为占位符；内容run校正为宋体小四；行距由400(exact)校正为1.5倍(360 auto)。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{三级标题1正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "spacing": {
+          "line": "360",
+          "lineRule": "auto"
+        }
+      }
+    },
+    {
+      "paragraph": 102,
+      "expected_text": "图1-3  毕业设计中图的注解示例（宋体，小五，在图的正下方）",
+      "evidence": "「图1-3  」后的示例图题（含说明「宋体，小五，在图的正下方」）为示例内容，替换为占位符并保留图编号；题注run校正为宋体小五(sz18)并清除红色。",
+      "replacements": [
+        {
+          "old": "毕业设计中图的注解示例（宋体，小五，在图的正下方）",
+          "new": "{{图题1}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "18"
+            },
+            "szCs": {
+              "val": "18"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 106,
+      "expected_text": "表1-5  毕业设计中表的注解示例（宋体，小五，在表的正上方）",
+      "evidence": "「表1-5  」后的示例表题（含说明「宋体，小五，在表的正上方」）为示例内容，替换为占位符并保留表编号；题注run校正为宋体小五(sz18)并清除红色。",
+      "replacements": [
+        {
+          "old": "毕业设计中表的注解示例（宋体，小五，在表的正上方）",
+          "new": "{{表题1}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "18"
+            },
+            "szCs": {
+              "val": "18"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 112,
+      "expected_text": "参考文献：（不少于15篇，包括外文资料至少1篇。）",
+      "evidence": "「（不少于15篇，包括外文资料至少1篇。）」是红色内容要求说明，不属正文，删除；数量与语种要求记入 content_requirements。栏目标签「参考文献：」保留。",
+      "replacements": [
+        {
+          "old": "（不少于15篇，包括外文资料至少1篇。）",
+          "new": ""
+        }
+      ]
+    },
+    {
+      "paragraph": 113,
+      "expected_text": "[1] ********************************（宋体、小四,1.5倍行间距）;",
+      "evidence": "[1] 条目的示例文本与格式说明（含结尾「;」）替换为占位符，保留「[1] 」编号；内容run校正为宋体小四。",
+      "replacements": [
+        {
+          "old": "********************************（宋体、小四,1.5倍行间距）;",
+          "new": "{{参考文献1}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 114,
+      "expected_text": "[2] ********************************（宋体、小四,1.5倍行间距）.",
+      "evidence": "[2] 条目的示例文本与格式说明（含结尾「.」）替换为占位符，保留「[2] 」编号；内容run校正为宋体小四。",
+      "replacements": [
+        {
+          "old": "********************************（宋体、小四,1.5倍行间距）.",
+          "new": "{{参考文献2}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 121,
+      "expected_text": "    ********************（宋体、小四,1.5倍行间距）",
+      "evidence": "致谢示例文本与说明括号替换为占位符；内容run校正为宋体小四；行距由400(exact)校正为1.5倍(360 auto)；标题「致  谢」保留。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四,1.5倍行间距）",
+          "new": "{{致谢正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ],
+      "paragraph_properties": {
+        "spacing": {
+          "line": "360",
+          "lineRule": "auto"
+        }
+      }
+    },
+    {
+      "paragraph": 138,
+      "expected_text": "(设计实施过程中的重点、典型编码等)",
+      "evidence": "附录下的「(设计实施过程中的重点、典型编码等)」是红色写作指导，删除；「附  录」标题与段落结构保留。",
+      "replacements": [
+        {
+          "old": "(设计实施过程中的重点、典型编码等)",
+          "new": ""
+        }
+      ]
+    },
+    {
+      "paragraph": 140,
+      "expected_text": "********************（宋体、小四）",
+      "evidence": "附录示例文本与说明括号「（宋体、小四）」替换为占位符；内容run校正为宋体小四；该说明未规定行距，按源文件保留行距400(exact)。",
+      "replacements": [
+        {
+          "old": "********************（宋体、小四）",
+          "new": "{{附录正文}}",
+          "run_properties": {
+            "rFonts": {
+              "hint": "eastAsia",
+              "ascii": "宋体",
+              "hAnsi": "宋体",
+              "eastAsia": "宋体",
+              "cs": "宋体"
+            },
+            "sz": {
+              "val": "24"
+            },
+            "szCs": {
+              "val": "24"
+            },
+            "color": {
+              "val": "000000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "paragraph": 59,
+      "expected_text": "第二章 ×××××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "×××××××××××××",
+          "new": "{{目录第二章标题}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 60,
+      "expected_text": "2.1 ××××××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "××××××××××××××",
+          "new": "{{目录二级标题1}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 61,
+      "expected_text": "2.1.1 ×××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "×××××××××××",
+          "new": "{{目录三级标题1}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 62,
+      "expected_text": "第三章 ×××××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "×××××××××××××",
+          "new": "{{目录第三章标题}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 63,
+      "expected_text": "3.1 ××××××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "××××××××××××××",
+          "new": "{{目录二级标题2}}"
+        }
+      ]
+    },
+    {
+      "paragraph": 64,
+      "expected_text": "3.1.1 ×××××××××××3",
+      "evidence": "目录条目中的「×××…」是示例标题，替换为唯一占位符；TOC 域( TOC \\o \"1-3\" \\h \\z \\u )、超链接与 PAGEREF 缓存页码（结构末尾的数字）保留不动。",
+      "replacements": [
+        {
+          "old": "×××××××××××",
+          "new": "{{目录三级标题2}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 0,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1表头1}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 1,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1表头2}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 2,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1表头3}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 3,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1数据11}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 4,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1数据12}}"
+        }
+      ]
+    },
+    {
+      "scope": "table",
+      "paragraph": 5,
+      "expected_text": "我是表格",
+      "evidence": "表格单元格中的「我是表格」是示例文字，替换为该单元格的唯一占位符；表格边框、列宽(tblGrid 2426/2427/2427)、tblPr 与表样式 23 保持不变。",
+      "replacements": [
+        {
+          "old": "我是表格",
+          "new": "{{表1数据13}}"
+        }
+      ]
+    },
+    {
+      "part": "word/header1.xml",
+      "paragraph": 1,
+      "expected_text": "海口经济学院毕业设计：毕业设计题目",
+      "evidence": "summary.json stories['word/header1.xml'] 第 1 段（部件内全部 w:p 顺序索引）为学校页眉示例题目，与封面/中文论题重复；template-replication.md 要求页眉示例论文题目替换为占位符且保留学校名称。仅替换「毕业设计题目」这一唯一片段，前导学校名称与 run 的 rFonts(hint=eastAsia)/sz/szCs(21) 原样保留，未写 run_properties 以免改写既有 rPr。占位符 {{页眉题目}} 在全文档仅此一处。",
+      "replacements": [
+        {
+          "old": "毕业设计题目",
+          "new": "{{页眉题目}}"
+        }
+      ]
+    }
+  ]
+}

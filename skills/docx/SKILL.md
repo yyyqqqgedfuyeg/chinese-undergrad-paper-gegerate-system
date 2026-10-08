@@ -16,6 +16,10 @@ A `.docx` is a ZIP archive of XML files. Choose your approach by task:
 
 > Script paths below are relative to this skill's directory.
 
+## Replicating and cleaning a supplied school template
+
+For template extraction, fidelity reproduction, clean reusable templates, and font/style storage, read [references/template-replication.md](references/template-replication.md). Use `scripts/template_pipeline.py` with a `style_rebuild` plan to remove all source/default style definitions, create visible named styles, apply them to document paragraphs, and retain the untouched replica. Save `style-catalog.json` and validate gallery visibility and style references. A supplied template takes precedence over generic formatting defaults. Validate structure and render the result before declaring compliance.
+
 ## Creating with docx-js — gotchas
 
 `docx` is preinstalled — do not run `npm install` first; write the script and `require('docx')` directly. Only if that require fails: `npm install docx`. The model knows the API; these are the footguns:
@@ -119,46 +123,7 @@ When the user requests a Three-Line Table (三线表) for academic or formal doc
 
 ## Footnotes and Cross-References (脚注与交叉引用)
 
-1. **Footnotes (脚注)**:
-   Define footnotes under the `footnotes` property of `Document`, and insert footnote markers in text using `FootnoteReferenceRun`:
-   ```javascript
-   const doc = new Document({
-     footnotes: {
-       1: { children: [new Paragraph({ children: [new TextRun("Footnote content here.")] })] }
-     },
-     sections: [{
-       children: [
-         new Paragraph({
-           children: [
-             new TextRun("Statement text"),
-             new FootnoteReferenceRun(1)
-           ]
-         })
-       ]
-     }]
-   });
-   ```
-
-2. **Cross-References (交叉引用 & 书签)**:
-   Mark the target with `BookmarkStart` and `BookmarkEnd`, and reference it using `SimpleField("REF BookmarkName \\h", "Display Text")`:
-   ```javascript
-   new Paragraph({
-     children: [
-       new BookmarkStart("Ref_Table1"),
-       new TextRun("Table 1: Experimental Results"),
-       new BookmarkEnd("Ref_Table1")
-     ]
-   });
-
-   // Reference it later in text:
-   new Paragraph({
-     children: [
-       new TextRun("As shown in "),
-       new SimpleField("REF Ref_Table1 \\h", "Table 1"),
-       new TextRun(" ...")
-     ]
-   });
-   ```
+For native footnotes with editable named styles and text references to tables, footnotes, or bibliography entries, read [references/notes-and-references.md](references/notes-and-references.md). Use `scripts/notes_references.py` to add these to an existing template without replacing its styles. On Linux, use its bounded number-cache refresh and disposable PDF input adapter when the office engine cannot evaluate NOTEREF; deliver the authored DOCX with native fields intact. References must use paired bookmarks and Word fields (`SEQ`, `REF`, `NOTEREF`), with valid targets and package relationships. Initial displayed numbers alone do not prove that references update: test insertion/reordering through an office engine and inspect the result.
 
 ## Dependencies
 

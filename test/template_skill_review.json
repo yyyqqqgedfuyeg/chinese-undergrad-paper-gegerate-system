@@ -1,0 +1,156 @@
+{
+  "source_template": "test/tmp/附件9 正文格式模板.docx",
+  "objective": "真实 .env API + 最小 ReAct agent + docx skill：模板复刻、清洗、字体样式存储、格式保留填写与可追溯验证",
+  "review_findings": [
+    {
+      "problem": "DocxTemplateAgent 写死通用毕业论文字号和间距，优先级高于学校模板",
+      "change": "移除竞争性格式基线，规则放在 docx skill；模板实际格式与明确文字说明作为依据",
+      "files": [
+        "agent/docx_agent.py",
+        "skills/docx/references/template-replication.md"
+      ]
+    },
+    {
+      "problem": "原 Agent 把脚本退出成功作为排版合规结论，并禁止追加验证",
+      "change": "以 ZIP/XML 保真、清洗计划、独立格式断言、XSD 和渲染证据验收",
+      "files": [
+        "skills/docx/scripts/template_pipeline.py",
+        "test/verify_template_replication.py"
+      ]
+    },
+    {
+      "problem": "学校模板包含封面、声明、目录、六个分节、图片、表格和页码域；从空白文档重建容易遗漏",
+      "change": "复刻版逐部件保留；干净模板在正文/表格/页眉页脚中仅应用带原文和证据的修改，保护分节、域、图片和表格结构",
+      "files": [
+        "skills/docx/scripts/template_pipeline.py"
+      ]
+    },
+    {
+      "problem": "模板中的说明与实际格式有冲突，例如正文固定20磅行距、封面宋体与楷体说明不一致",
+      "change": "保留原始副本；模型提交 conflicts 和具体格式修正计划，干净模板按明确说明修正",
+      "files": [
+        "test/test_template_skill_real.py"
+      ]
+    },
+    {
+      "problem": "原始 styles.xml 有 CT_Style 子节点顺序错误",
+      "change": "干净版规范节点顺序，样式值保持；保存 style-order-repairs.json；复刻版保持原始错误以保证保真",
+      "files": [
+        "skills/docx/scripts/template_pipeline.py"
+      ]
+    },
+    {
+      "problem": "只保存样式名称会遗漏直接格式、字体主题和继承定义",
+      "change": "保存 styles.xml、fontTable.xml、settings.xml、theme 和逐段/run 原始属性；摘要提供直接格式和继承候选",
+      "files": [
+        "skills/docx/scripts/template_pipeline.py"
+      ]
+    },
+    {
+      "problem": "真实 API 的 temperature 与组织 RPM 限制导致原测试入口失败；.env 配置前缀与服务名相反",
+      "change": "默认省略 temperature；实验入口显式选择配置前缀和可选请求间隔，实际 endpoint/model 由该组 .env 读取，不修改 .env",
+      "files": [
+        "agent/agent.py",
+        "test/test_template_skill_real.py"
+      ]
+    },
+    {
+      "problem": "失败过程没有可靠的持久日志，难以追踪工具与修改依据",
+      "change": "逐事件刷新 JSONL，保存公开模型消息、完整工具参数/返回、usage 和错误；凭据脱敏；导出可读操作记录",
+      "files": [
+        "test/test_template_skill_real.py",
+        "test/export_template_agent_log.py"
+      ]
+    },
+    {
+      "problem": "只验证字号/XSD 未发现英文摘要和关键词因字符网格吸附导致越界，页眉示例题目也未清洗",
+      "change": "增加页眉/页脚提取与填写；通过真实 agent 修复两个英文段落的 snapToGrid；新增 PDF 边界和英文全文完整性验收",
+      "files": [
+        "skills/docx/scripts/template_pipeline.py",
+        "skills/docx/references/template-replication.md",
+        "test/verify_template_replication.py"
+      ]
+    },
+    {
+      "problem": "旧模板样式被保留、未向 Word 预设样式库添加可见命名样式；直接格式也可能阻止全局样式修改",
+      "change": "style_rebuild replace_all 清空67个旧定义及内置潜在样式条目，新增35个中文命名段落样式和1个表格样式，设置customStyle/qFormat/uiPriority；解析旧格式继承后绑定所有段落，去除与新样式相同的直接格式；校验旧引用已清理",
+      "files": [
+        "skills/docx/scripts/rebuild_styles.py",
+        "skills/docx/scripts/template_pipeline.py",
+        "test/fixtures/annex9-style-rebuild.json"
+      ]
+    }
+  ],
+  "validation_commands": [
+    ".venv/bin/python -m unittest test.test_template_pipeline -v",
+    ".venv/bin/python test/test_template_skill_real.py --provider KIMI --out test/artifacts/template-skill/<new-run>",
+    ".venv/bin/python test/verify_template_replication.py --out test/artifacts/template-skill/<run> --render",
+    ".venv/bin/python test/export_template_agent_log.py test/artifacts/template-skill/<run>"
+  ],
+  "limits": [
+    "字体定义存储不等于字体二进制嵌入；当前环境字体替代需在验收中说明",
+    "LibreOffice 渲染与 Microsoft Word 的版式兼容性需要分别理解，不能据此承诺跨环境像素完全一致",
+    "参考文献、关键词等内容约束在 cleaning-plan.json 保存；测试示例不作为完整论文的内容合规证明",
+    "目录页码缓存来自源模板，成稿后应更新目录再验收",
+    "本轮工具调用次数和累计上下文仍有优化空间；日志记录实际 usage，不将该次增量修复的耗时当作从零生成耗时"
+  ],
+  "final_evidence": {
+    "run": "test/artifacts/template-skill/run-08",
+    "api_host": "api.deepseek.com",
+    "model": "deepseek-flash",
+    "env_prefix": "KIMI",
+    "independent_acceptance": "test/artifacts/template-skill/run-08/acceptance.json",
+    "acceptance_checks": 74,
+    "passed": true,
+    "sections": 6,
+    "paragraphs": 151,
+    "pages": 10,
+    "replica_parts_identical": true,
+    "replica_raster_pages_identical": true,
+    "plan_edits": 41,
+    "placeholder_count": 39,
+    "xsd_clean_and_filled": "passed",
+    "regression_tests": 7,
+    "operation_log": "test/artifacts/template-skill/run-08/agent-operations.txt",
+    "raw_events": "test/artifacts/template-skill/run-08/agent-events.jsonl",
+    "agent_execution_seconds": 67.857,
+    "agent_tool_calls": 27,
+    "old_styles_removed": 67,
+    "new_paragraph_styles": 35,
+    "new_table_styles": 1
+  },
+  "iterations": [
+    {
+      "run": "run-01",
+      "result": "API rejected fixed temperature=0.3; default changed to omit temperature"
+    },
+    {
+      "run": "run-02",
+      "result": "Moonshot organization RPM limit; optional rate limiting added"
+    },
+    {
+      "run": "run-03",
+      "result": "Interrupted at user request to switch API"
+    },
+    {
+      "run": "run-04",
+      "result": "Interrupted after review found incomplete summary caused excessive raw XML reads"
+    },
+    {
+      "run": "run-05",
+      "result": "Generated passing basic artifacts; agent exceeded graph step limit; visual review found unclean header"
+    },
+    {
+      "run": "run-06",
+      "result": "Agent completed header correction; independent checks passed until subsequent visual inspection found clipped English text"
+    },
+    {
+      "run": "run-07",
+      "result": "Agent completed grid correction; 62 independent acceptance checks passed, including English PDF completeness and boundaries"
+    },
+    {
+      "run": "run-08",
+      "result": "按用户纠正清空全部旧样式，再新增并应用可见命名样式；真实API调用完成，74项独立验收和7项回归测试通过"
+    }
+  ]
+}
