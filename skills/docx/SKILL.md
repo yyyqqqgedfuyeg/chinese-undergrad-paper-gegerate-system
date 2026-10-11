@@ -4,6 +4,13 @@ description: "Use this skill whenever the user wants to create, read, edit, or m
 license: Proprietary. LICENSE.txt has complete terms
 ---
 
+# 项目 agent 的职责与权限
+
+运行时按角色加载 [撰写](references/roles/writing.md)、[编码](references/roles/coding.md)、[模板准备](references/roles/template.md)、[成稿装配](references/roles/assembly.md)、[大纲](references/roles/outline.md)、[文献](references/roles/literature.md) 视图。
+权限由 `src/agent/security/policy.py` 和各角色工具工厂执行；阅读技能不授予 Bash 或文件权限。
+模板准备允许有依据的样式重建。成稿装配必须复用已批准模板的原型和格式，禁止调用样式重建、任意 XML 编辑或修订工具。
+以下为技能维护和专用脚本操作参考，不整体注入撰写 agent。
+
 # DOCX creation, editing, and analysis
 
 A `.docx` is a ZIP archive of XML files. Choose your approach by task:
