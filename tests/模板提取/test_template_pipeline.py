@@ -31,6 +31,14 @@ class TemplatePipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             pipeline.replace_span(p._p,'不存在','x')
 
+    def test_empty_image_paragraph_accepts_binding_marker(self):
+        d = Document()
+        p = d.add_paragraph()
+        pipeline.replace_span(p._p, "", "{{图片原型}}")
+        self.assertEqual(p.text, "{{图片原型}}")
+        with self.assertRaises(ValueError):
+            pipeline.replace_span(p._p, "", "重复")
+
     def test_fill_preserves_formats_and_requires_all_values(self):
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)

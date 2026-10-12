@@ -4,6 +4,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 
 from langchain_core.tools import tool
 from ..security.policy import bind_role_tools
@@ -55,6 +56,7 @@ class AssemblyAgent:
                     temp = Path(handle.name); handle.write(data)
                 self._check_template()
                 temp.replace(self.output)
+                self.output.with_suffix(".layout.json").unlink(missing_ok=True)
             finally:
                 if temp:
                     temp.unlink(missing_ok=True)
@@ -66,6 +68,15 @@ class AssemblyAgent:
             """重放确定性装配并逐字节验证成稿、源模板指纹和内容。"""
             self._check_template()
             expected, report = assemble(self.template, self.contract, self.state, self.abstract, self.keywords)
+            layout = self.output.with_suffix(".layout.json")
+            if layout.exists():
+                from io import BytesIO
+                from .finalize import apply_page_cache
+                from .engine import archive_bytes
+                cached = json.loads(layout.read_text())
+                if cached["assembled_sha256"] == sha256(expected).hexdigest():
+                    parts, _ = apply_page_cache(package(BytesIO(expected)), cached["page_numbers"])
+                    expected = archive_bytes(parts)
             if not self.output.is_file() or self.output.read_bytes() != expected:
                 raise ValueError("成稿与已验收内容/模板不一致")
             result = {**report, "path": str(self.output), "output_sha256": sha256(expected).hexdigest(),
@@ -73,10 +84,44 @@ class AssemblyAgent:
             self.output.with_suffix(".verification.json").write_text(json.dumps(result, ensure_ascii=False, indent=2))
             return result
 
-        return list(bind_role_tools(self.role, [inspect_assembly, assemble_content, verify_assembly]).values())
+        @tool
+        def check_assembly() -> dict:
+            """检查成稿空标题、空章节及目录条目；不通过则拒绝交付。"""
+            from .quality import check_content
+            parts = package(self.output)
+            result = check_content(parse(parts["word/document.xml"]), parse(parts["word/styles.xml"]))
+            self.output.with_suffix(".structure.json").write_text(json.dumps(result, ensure_ascii=False, indent=2))
+            return result
+
+        @tool
+        def render_and_finalize() -> dict:
+            """本地排版、核验目录页码并写回DOCX缓存，不调用模型或网络。"""
+            from .finalize import finalize
+            source = self.output.with_name(self.output.stem + "-assembled.docx")
+            source.write_bytes(self.output.read_bytes())
+            render_dir = self.output.parent / "render"
+            renderer = Path(__file__).with_name("layout_uno.py")
+            process = subprocess.run(["/usr/bin/python3", str(renderer), str(source), str(render_dir)],
+                                     capture_output=True, text=True, timeout=180)
+            if process.returncode:
+                raise RuntimeError("本地目录排版失败，未完成交付：" + process.stderr[-2000:])
+            mapping = render_dir / "page-numbers.json"
+            result = finalize(source, mapping, self.output)
+            self.output.with_suffix(".layout.json").write_text(json.dumps({
+                "assembled_sha256": sha256(source.read_bytes()).hexdigest(),
+                "page_numbers": json.loads(mapping.read_text())}, ensure_ascii=False, indent=2))
+            return {"layout_finalization": result, "output_sha256": result["output_sha256"],
+                    "pdf_path": str(render_dir / (source.stem + ".pdf"))}
+
+        return list(bind_role_tools(self.role, [inspect_assembly, assemble_content, verify_assembly, check_assembly, render_and_finalize]).values())
 
     def invoke(self) -> dict:
         tools = {t.name: t for t in self.get_all_tools()}
         tools["inspect_assembly"].invoke({})
         tools["assemble_content"].invoke({})
-        return tools["verify_assembly"].invoke({})
+        result = tools["verify_assembly"].invoke({})
+        result["structure_check"].update(tools["check_assembly"].invoke({}))
+        if result["structure_check"].get("toc_entries"):
+            result.update(tools["render_and_finalize"].invoke({}))
+            tools["verify_assembly"].invoke({})
+        return result

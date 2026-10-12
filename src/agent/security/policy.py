@@ -9,7 +9,7 @@ ROLE_TOOLS = MappingProxyType({
     "writing": frozenset({"read_section", "code_asset"}),
     "coding": frozenset({"bash", "read", "write", "edit"}),
     "template": frozenset({"inspect_template", "build_template", "verify_template"}),
-    "assembly": frozenset({"inspect_assembly", "assemble_content", "verify_assembly"}),
+    "assembly": frozenset({"inspect_assembly", "assemble_content", "verify_assembly", "check_assembly", "render_and_finalize"}),
 })
 
 

@@ -74,7 +74,7 @@ class FormatExtractorState(TypedDict):
 ### 2.2 Agent 2：大纲与全局规划智能体 (`GlobalPlannerState`)
 
 - **职责**：当前 `OutlineAgent` 读取已有唯一事实源，生成精细到三级标题的撰写规划（包含明确的图表资产需求），校验成功后写入全局 `outline_plan`。不提供任何工具，仅输出大纲 JSON；唯一事实源由上游维护。
-- **层级约束**：目录从 `1 / 第一章 绪论` 开始，按顺序包含每章标题及其二级、三级标题。第一、二章保留到二级；第三章及以后涉及系统分析、设计、实现、测试的核心章节必须细分至三级。
+- **层级约束**：目录从 `1 / 第一章 绪论` 开始，按顺序包含每章标题及其二级、三级标题。第一章可保留到二级；除相关理论与技术章外，各主体章节普遍展开三级标题，多数非本章小结的二级标题展开至少两个三级子标题。摘要、总结展望、致谢、参考文献、附录等非主体章节例外。
 - **字数与资产**：含子标题的父节点 `target_words=0`，叶子节点分配正整数字数。软件系统必须在数据库设计的三级小节规划 ER 图及具体数据表结构三线表，覆盖事实源 `db_schemas` 中每张表。
 - **状态设计**：
   - `single_source_of_truth`：技术栈、实体 Schema、功能设计、实验方法等全局核心指标。
@@ -241,3 +241,20 @@ def section_executor_node(state: Dict[str, Any]) -> Dict[str, Any]:
 | `FormatExtractorState.template`| 样式对象 | **写入** | - | - | **读取 (参照)** | **读取** |
 | `outline_plan`（全局共享，结构见 `GlobalPlannerState`） | 任务矩阵 | - | **写入** | - | **读取并更新状态** | **读取 (装配顺序)** |
 | `SectionExecutorState.*` | 瞬态私有 | - | - | - | **每轮写入并清空** | - |
+
+
+## 完整工作流补充（2026-10）
+
+运行时定义以 `src/agent/state.py` 为准。`PaperWorkflow` 接受 `topic`、`raw_doc_path`、独立 `workspace_dir`，以及可选用户事实。阶段为 template → research → outline → literature → writing → asset_review → metadata → assembly。
+
+新增跨阶段状态：`research_design`（结构化拟议方案）、`research_provenance`（原始用户事实与生成方案来源）、`research_lock`（选题/事实/设计/来源的 SHA256 快照）、`template_report`、`research_review`、`outline_review`、`literature_sha256`、`metadata_review`、`abstract`、`keywords`、`workflow_report`、`final_doc_path`。
+
+`single_source_of_truth` 保留用户提供的顶层键，增加 `research_proposal` 与证据表述约束。后续阶段只读这些事实；正文、图表及摘要不得把拟议方案表述为实测结果。事实指纹保证数据一致，模型审查检查语义冲突，两者都不等于现实真实性证明。文献池只证明题录来源，不证明论文全文结论。
+
+工作流检查点保存在 `workflow/state.json`，仅提交成功阶段；撰写仍以 `writing/manifest.json` 为批次提交点。相同原始输入可恢复失败任务；关键输入变化必须使用新目录。模板、正文和资产在导出及续跑时重新验收。模型对话与工具临时变量不写入全局共享状态。
+
+图表验收除源文件和数据校验外，还将实际图片送入批次语义审查，拒绝严重遮挡、裁切与事实冲突；所用模型须支持图像输入。审查报告记录 `visual_assets_reviewed`，失败反馈保存在 `writing/last-batch-error.json` 并在同一批次续跑时恢复。目录域导出时标记为待刷新，文档设置仅允许新增或更新 `updateFields`，其余模板设置保持不变。
+
+`asset_review_report` 记录最终图片数量、替换次数和审计路径。成稿前图表复查以 manifest 为权威版本，审查通过的修复才更新资产路径和文件指纹；正文与冻结研究不变，旧产物保留。`writing/asset-review.json` 保存内容指纹绑定的复查结果、拒绝原因及替换记录，支持修复中断后继续。
+
+审查上下文 `prior_design` 从已提交 `writing_records` 的章节编号、摘要、关键事实派生，贯穿后续写作、成稿图表复查和摘要审查。优先级为用户原始事实 > 冻结方案 > 已验收设计细化；它不属于新增实测证据，也不允许回写覆盖研究锁。

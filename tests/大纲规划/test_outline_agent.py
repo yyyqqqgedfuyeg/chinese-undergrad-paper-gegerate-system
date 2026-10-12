@@ -18,7 +18,8 @@ def valid_outline():
 
     return {"outline_plan": [
         node("1", "第一章 绪论"), node("1.1", "研究背景", 600),
-        node("2", "第二章 相关技术"), node("2.1", "技术选型", 600),
+        node("2", "第二章 相关技术"), node("2.1", "后端技术", 300),
+        node("2.2", "前端技术", 300), node("2.3", "建模工具", 300),
         node("3", "第三章 系统设计"), node("3.1", "数据库设计"),
         node("3.1.1", "概念结构设计", 600, ["fig_3_1 (系统ER图)"]),
         node("3.1.2", "用户表设计", 600, ["tbl_3_1 (t_user 数据表结构三线表)"]),
@@ -93,24 +94,24 @@ class OutlineAgentTests(unittest.TestCase):
         no_chapter["outline_plan"].pop(0)
         cases.append(no_chapter)
         no_parent = valid_outline()
-        no_parent["outline_plan"].pop(5)
+        no_parent["outline_plan"].pop(7)
         cases.append(no_parent)
         no_thirds = valid_outline()
-        no_thirds["outline_plan"] = no_thirds["outline_plan"][:6]
+        no_thirds["outline_plan"] = no_thirds["outline_plan"][:8]
         no_thirds["outline_plan"][-1]["target_words"] = 600
         cases.append(no_thirds)
         double_count = valid_outline()
-        double_count["outline_plan"][5]["target_words"] = 600
+        double_count["outline_plan"][7]["target_words"] = 600
         cases.append(double_count)
         no_er = valid_outline()
-        no_er["outline_plan"][6]["planned_assets"] = []
+        no_er["outline_plan"][8]["planned_assets"] = []
         cases.append(no_er)
         no_tables = valid_outline()
-        no_tables["outline_plan"][7]["planned_assets"] = ["tbl_3_1 (测试用例)"]
+        no_tables["outline_plan"][9]["planned_assets"] = ["tbl_3_1 (测试用例)"]
         cases.append(no_tables)
         # 两项资产都放到绪论，数据库三级小节没有规划，仍应拒绝。
         wrong_location = valid_outline()
-        for index in [6, 7]:
+        for index in [8, 9]:
             wrong_location["outline_plan"][1]["planned_assets"] += wrong_location["outline_plan"][index]["planned_assets"]
             wrong_location["outline_plan"][index]["planned_assets"] = []
         cases.append(wrong_location)
@@ -129,7 +130,7 @@ class OutlineAgentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "t_appointment"):
             OutlineAgent(llm=RecordingModel(json.dumps(valid_outline()))).invoke(state)
         data = valid_outline()
-        data["outline_plan"][7]["planned_assets"].append("tbl_3_2 (t_appointment 数据表结构三线表)")
+        data["outline_plan"][9]["planned_assets"].append("tbl_3_2 (t_appointment 数据表结构三线表)")
         OutlineAgent(llm=RecordingModel(json.dumps(data))).invoke(state)
         self.assertEqual(state["outline_plan"], data["outline_plan"])
 
@@ -144,6 +145,16 @@ class OutlineAgentTests(unittest.TestCase):
             with self.subTest(content=content):
                 with self.assertRaises(ValidationError):
                     OutlineAgent(llm=RecordingModel(content)).invoke(create_initial_global_state(topic="预约系统"))
+
+    def test_theory_stays_shallow_and_design_stays_deep(self):
+        from agent.output_parsers.outline_parser import validate_outline_depth
+        data = valid_outline()["outline_plan"]
+        validate_outline_depth(data)
+        with self.assertRaisesRegex(ValueError, "只保留二级"):
+            validate_outline_depth(data + [{"section_id": "2.1.1", "title": "不应展开"}])
+        one_child = [n for n in data if n["section_id"] != "3.1.2"]
+        with self.assertRaisesRegex(ValueError, "3.1"):
+            validate_outline_depth(one_child)
 
     def test_topic_required_before_model_call(self):
         for topic in ["", " ", None]:

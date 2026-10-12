@@ -38,6 +38,7 @@ class GlobalPlannerState(TypedDict):
 
 
 class PaperGlobalState(TypedDict, total=False):
+    layout_options: dict[str, bool]  # chapter_page_break: start each main chapter on a new page
     """
     系统全局共享状态。
     【设计原则】只保留具备全局、跨阶段持久价值的基础设施路径与核心事实资产，严禁容纳单步临时变量。
@@ -58,6 +59,25 @@ class PaperGlobalState(TypedDict, total=False):
     assembly_contract: Dict[str, Any]  # 模板指纹、正文锚点、段落/表格原型与元信息绑定
     assembly_report: Dict[str, Any]    # 装配格式和内容校验报告
     writing_report: Dict[str, Any]         # 完成情况、批次接力及模型/工具调用统计
+
+    research_design: Dict[str, Any]    # 新增内容均是拟议方案，不自动当作真实结果
+    research_provenance: Dict[str, Any]  # 用户输入与生成方案的来源边界
+    research_lock: Dict[str, Any]      # 不可变事实快照与 SHA256
+    research_review: Dict[str, Any]
+    outline_review: Dict[str, Any]
+    outline_normalization_report: Dict[str, Any]
+    template_report: Dict[str, Any]
+    literature_sha256: str
+    metadata_review: Dict[str, Any]
+    asset_review_report: Dict[str, Any]
+    abstract: str
+    keywords: List[str]
+    topic_en: str
+    abstract_en: str
+    keywords_en: List[str]
+    acknowledgements: str
+    workflow_report: Dict[str, Any]    # 阶段状态、完成记录及失败诊断
+    final_doc_path: str
 
     # 3. 项目元信息
     project_id: str                   # 项目唯一标识

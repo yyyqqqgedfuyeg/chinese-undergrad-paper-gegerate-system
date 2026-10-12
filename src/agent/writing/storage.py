@@ -16,7 +16,8 @@ def sha256(text: str) -> str:
 
 def input_fingerprint(state: dict) -> str:
     value = {key: state.get(key) for key in
-             ("project_id", "topic", "single_source_of_truth", "bib_pool")}
+             ("project_id", "topic", "single_source_of_truth", "bib_pool", "research_lock",
+              "assembly_contract", "new_template_path")}
     value["outline_plan"] = [{k: v for k, v in task.items() if k != "status"}
                              for task in state["outline_plan"]]
     return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True))
@@ -83,6 +84,16 @@ def parse_batch(content: str, tasks: list, state: dict, root: Path) -> BatchOutp
     result = BatchOutput.model_validate_json(text)
     if [section.section_id for section in result.sections] != [t["section_id"] for t in tasks]:
         raise ValueError("输出必须按顺序完整包含本批所有小节，不能多写、漏写或重复")
+    length_errors = []
+    for section, task in zip(result.sections, tasks):
+        body = re.sub(r"\[\[.*?\]\]", "", section.content)
+        length = len(re.sub(r"\s|[#*`|]", "", body))
+        minimum, maximum = max(1, int(task["target_words"] * 0.6)), task["target_words"] * 2
+        if not minimum <= length <= maximum:
+            length_errors.append(f"{section.section_id} 正文长度 {length}；目标 {task['target_words']} 个中文非空字符，"
+                                 f"必须在 {minimum}-{maximum} 字符内，请按目标字数压缩或补充 content")
+    if length_errors:
+        raise ValueError("；".join(length_errors))
     bib_keys = {entry["key"] for entry in state.get("bib_pool", [])}
     history_assets = {a["asset_id"]: a for r in state.get("writing_records", []) for a in r["assets"]}
     owned_paths = {a[k] for a in history_assets.values() for k in ("path", "source_path")}
@@ -90,11 +101,6 @@ def parse_batch(content: str, tasks: list, state: dict, root: Path) -> BatchOutp
     for section, task in zip(result.sections, tasks):
         if section.title != task["title"]:
             raise ValueError(f"标题与任务不一致: {section.section_id}")
-        # 去掉引用、Markdown 标记后的非空字符作为中文正文长度近似；避免只有一句话却标完成。
-        body = re.sub(r"\[\[.*?\]\]", "", section.content)
-        length = len(re.sub(r"\s|[#*`|]", "", body))
-        if not max(1, int(task["target_words"] * 0.6)) <= length <= task["target_words"] * 2:
-            raise ValueError(f"{section.section_id} 正文长度 {length} 不在目标字数的 60%-200% 内")
         expected = [asset_id(value) for value in task["planned_assets"]]
         actual = [a.asset_id for a in section.assets]
         if len(actual) != len(set(actual)) or set(actual) != set(expected):

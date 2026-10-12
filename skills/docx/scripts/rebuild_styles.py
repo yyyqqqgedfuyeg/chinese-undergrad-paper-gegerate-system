@@ -251,7 +251,44 @@ def rebuild(parts, config):
                 rp=prune(rp,br)
                 if rp:r.insert(0,properties('rPr',rp))
             counts[sid]+=1
+    # Numbering definitions can refer to built-in paragraph/numbering styles even
+    # when no visible paragraph uses them. Rebuild these dependencies too; do not
+    # leave dangling references or silently strip numbering semantics.
+    numbering_aliases = {}
+    numbering = ET.fromstring(parts['word/numbering.xml']) if 'word/numbering.xml' in parts else None
+    def numbering_style(sid):
+        if sid in numbering_aliases:
+            return numbering_aliases[sid]
+        new_id = 'PaperNumberingStyle' + str(len(numbering_aliases) + 1)
+        if new_id in ids:
+            raise ValueError('Reserved numbering style id: ' + new_id)
+        numbering_aliases[sid] = new_id
+        source = by_id[sid]
+        style = ET.SubElement(fresh, q('style'), {q('type'): source.get(q('type')),
+            q('customStyle'): '1', q('styleId'): new_id})
+        ET.SubElement(style, q('name'), {q('val'): '论文编号关联样式' + str(len(numbering_aliases))})
+        ET.SubElement(style, q('qFormat'))
+        flat = {}
+        for ancestor in chain(sid):
+            for prop in ancestor:
+                tag = ET.QName(prop).localname
+                if tag in ('pPr', 'rPr', 'tblPr', 'trPr', 'tcPr'):
+                    flat[tag] = merge(flat.get(tag, {}), children(prop), tag == 'rPr')
+        for tag in ('pPr', 'rPr', 'tblPr', 'trPr', 'tcPr'):
+            if tag in flat:
+                style.append(properties(tag, flat[tag]))
+        return new_id
+    if numbering is not None:
+        for ref in numbering.xpath('//w:pStyle|//w:styleLink|//w:numStyleLink', namespaces=NS):
+            sid = ref.get(q('val'))
+            if sid in by_id:
+                ref.set(q('val'), numbering_style(sid))
     result=dict(parts);result['word/styles.xml']=xml(fresh)
+    if numbering is not None:
+        result['word/numbering.xml'] = xml(numbering)
+    # Word can ship a second style catalog; keeping it resurrects built-ins.
+    if 'word/stylesWithEffects.xml' in result:
+        result['word/stylesWithEffects.xml'] = xml(fresh)
     for name,r in roots.items():result[name]=xml(r)
     # No old style references may survive anywhere, including numbering parts.
     for name,data in list(result.items()):

@@ -59,7 +59,7 @@ class CodingSandbox:
         if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 180:
             raise ValueError("timeout_seconds 必须为 1-180")
         with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
-            process = subprocess.Popen(self.command(command), stdout=out, stderr=err,
+            process = subprocess.Popen(self.command("set -o pipefail\n" + command), stdout=out, stderr=err,
                                        start_new_session=True, env={"PATH": "/usr/bin:/bin"})
             timed_out = False
             try:
