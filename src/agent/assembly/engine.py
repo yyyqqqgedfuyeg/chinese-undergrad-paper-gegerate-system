@@ -13,7 +13,8 @@ W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
-NS = {"w": W, "r": R, "a": A, "wp": WP}
+NS = {"w": W, "r": R, "a": A, "wp": WP,
+      "pic": "http://schemas.openxmlformats.org/drawingml/2006/picture"}
 XML_SPACE = "{http://www.w3.org/XML/1998/namespace}space"
 
 
@@ -60,6 +61,24 @@ def set_text(node, value):
         child.text = ""
 
 
+def paragraph_property(paragraph, name, **attrs):
+    """Set an explicit layout override without altering template styles."""
+    ppr = paragraph.find("w:pPr", NS)
+    if ppr is None:
+        ppr = E.Element("{" + W + "}pPr")
+        paragraph.insert(0, ppr)
+    node = ppr.find("w:" + name, NS)
+    if node is None:
+        node = E.Element("{" + W + "}" + name)
+        order = "pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr suppressLineNumbers pBdr shd tabs suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr pPrChange".split()
+        rank = order.index(name)
+        index = next((i for i, child in enumerate(ppr) if E.QName(child).localname in order and order.index(E.QName(child).localname) > rank), len(ppr))
+        ppr.insert(index, node)
+    for key, value in attrs.items():
+        node.set("{" + W + "}" + key, str(value))
+    return node
+
+
 def inline_content(paragraph, chunks):
     """原生 REF/SEQ 使用原型文本 run 的属性，不引入新的字体/样式。"""
     first = paragraph.xpath(".//w:r[w:t]", namespaces=NS)[0]
@@ -80,11 +99,19 @@ def inline_content(paragraph, chunks):
                 run.append(deepcopy(props))
             value = chunk[1] if kind == "text" else chunk[2]
             E.SubElement(run, "{"+W+"}t", {XML_SPACE: "preserve"}).text = value
+            if kind == "cite":
+                rpr = run.find("w:rPr", NS)
+                if rpr is None:
+                    rpr = E.Element("{" + W + "}rPr")
+                    run.insert(0, rpr)
+                for old in rpr.findall("w:vertAlign", NS):
+                    rpr.remove(old)
+                E.SubElement(rpr, "{" + W + "}vertAlign", {"{" + W + "}val": "superscript"})
             if kind == "text":
                 node = run
             else:
                 node = E.Element("{"+W+"}fldSimple")
-                instruction = ("REF " + chunk[1] + " \\h") if kind == "ref" else ("SEQ " + chunk[1] + " \\* ARABIC")
+                instruction = ("REF " + chunk[1] + " \\h") if kind in {"ref", "cite"} else ("SEQ " + chunk[1] + " \\* ARABIC")
                 node.set("{"+W+"}instr", instruction)
                 node.append(run)
         parent.insert(index, node); index += 1
@@ -125,6 +152,7 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
     document = parse(parts["word/document.xml"])
     body = document.find("w:body", NS)
     paragraphs = list(body.findall("w:p", NS))
+    render_constraints = asset_constraints({**state, "assembly_contract": contract, "new_template_path": str(template)})
 
     def select(value):
         matches = [p for p in paragraphs if text(p) == value]
@@ -225,8 +253,11 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
             for row in rows:
                 table.remove(row)
             values = [data["columns"]] + data["rows"]
-            if len(values) > 2 and len(rows) < 3:
-                raise ValueError("多行表格需要表头、普通数据行和末行三种原型")
+            if len(values) > 2 and len(rows) == 2:
+                # A two-row grid table has a reusable data-row prototype. A
+                # special last-row bottom border is ambiguous: reject that case.
+                if rows[1].xpath(".//w:tcBorders/w:bottom", namespaces=NS):
+                    raise ValueError("两行表格含末行专用边框，需要独立普通行原型")
             for i, row_values in enumerate(values):
                 # 第一行继承表头，末行继承模板末行底边框，普通行继承第二行。
                 original = rows[0] if i == 0 else (rows[-1] if i == len(values)-1 else rows[1])
@@ -244,6 +275,9 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
             if "figure" not in prototypes:
                 raise ValueError("模板缺少图片原型")
             p = clone_prototype("figure")
+            paragraph_property(p, "spacing", line="240", lineRule="auto")
+            paragraph_property(p, "snapToGrid", val="0")
+            paragraph_property(p, "keepNext", val="1")
             for marker in p.xpath(".//w:t", namespaces=NS):
                 marker.text = ""
             blips = p.xpath(".//a:blip", namespaces=NS)
@@ -255,9 +289,19 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
                 extents = p.xpath(".//wp:extent", namespaces=NS)
                 if len(extents) != 1:
                     raise ValueError("图片原型缺少显示尺寸")
-                ratio = int(extents[0].get("cx")) / int(extents[0].get("cy"))
-                if abs(im.width / im.height / ratio - 1) > 0.01:
+                ratio = render_constraints.get("image_aspect_ratio")
+                if ratio and abs(im.width / im.height / ratio - 1) > 0.01:
                     raise ValueError("图片宽高比不匹配模板，需编码阶段重新生成")
+                if render_constraints.get("image_sizing") == "fit_width":
+                    width = render_constraints["image_max_width_emu"]
+                    height = round(width * im.height / im.width)
+                    maximum = render_constraints.get("image_max_height_emu")
+                    if maximum and height > maximum:
+                        width = round(width * maximum / height)
+                        height = maximum
+                    for extent in [*extents, *p.xpath(".//pic:spPr/a:xfrm/a:ext", namespaces=NS)]:
+                        extent.set("cx", str(width))
+                        extent.set("cy", str(height))
                 im.verify()
                 extension = {"PNG": "png", "JPEG": "jpg"}.get(im.format)
             if not extension:
@@ -274,7 +318,7 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
             blips[0].set("{"+R+"}embed", rid)
             for prop in p.xpath(".//wp:docPr", namespaces=NS):
                 prop.set("id", str(next_id)); next_id += 1
-            # 尺寸和段落格式完全复用图片原型；素材比例由编码阶段适配模板。
+            # 复用段落/图片样式；默认保持素材比例，以模板宽度和版心高度为上限。
             blocks.append(p)
             caption(aid, "figure")
             if not any(t.get("Extension") == extension for t in types):
@@ -284,7 +328,16 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
     record_map = {r["section_id"]: r for r in records}
     used_citations = set()
     for item in state["outline_plan"]:
-        paragraph("heading"+str(item["section_id"].count(".")+1), item["title"])
+        sid = item["section_id"]
+        heading = item["title"]
+        prototype = prototypes.get("heading" + str(sid.count(".") + 1))
+        auto_numbered = prototype is not None and prototype.find("w:pPr/w:numPr", NS) is not None
+        if "." in sid and not auto_numbered and not re.match(r"^" + re.escape(sid) + r"(?:\s|[、.．]|$)", heading):
+            heading = sid + " " + heading
+        heading_p = paragraph("heading"+str(sid.count(".")+1), heading)
+        paragraph_property(heading_p, "keepNext", val="1")
+        if "." not in sid and state.get("layout_options", {}).get("chapter_page_break", False):
+            paragraph_property(heading_p, "pageBreakBefore", val="1")
         if not item["target_words"]:
             continue
         content = record_map[item["section_id"]]["content"]
@@ -313,7 +366,7 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
                     chunks.append(("text", line[last:match.start()]))
                     name = bib_names[key] if kind == "CITE" else asset_names[key]
                     cached = f"[{bib[key][0]}]" if kind == "CITE" else labels[key]
-                    chunks.append(("ref", name, cached))
+                    chunks.append(("cite" if kind == "CITE" else "ref", name, cached))
                     last = match.end()
                 if chunks:
                     chunks.append(("text", line[last:]))
@@ -333,7 +386,11 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
                 if not isinstance(authors, list) or not all(isinstance(a, str) for a in authors):
                     raise ValueError("文献 authors 必须为字符串列表")
                 formatted = f"{', '.join(authors)}. {item['title']}. {item.get('venue', item.get('journal', ''))}, {item['year']}. {item.get('doi', '')}".strip()
-            p = paragraph("bibliography", f"[{number}] {formatted}")
+            if state.get("layout_options", {}).get("no_parentheses"):
+                from .editorial import unparenthesize
+                formatted = unparenthesize(formatted)
+            p = paragraph("body", f"[{number}] {formatted}")
+            paragraph_property(p, "outlineLvl", val="9")
             inline_content(p, [("start", bookmark_id, bib_names[key]), ("text", f"[{number}]"),
                                ("end", bookmark_id), ("text", " "+formatted)])
             bookmark_id += 1
@@ -349,6 +406,16 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
         parts["[Content_Types].xml"] = xml(types)
     fields = contract.get("fields", {})
     values = {"topic": state["topic"], "abstract": abstract, "keywords": "；".join(keywords)}
+    for key in ("topic_en", "abstract_en", "keywords_en", "acknowledgements"):
+        if key in fields.values():
+            value = state.get(key)
+            if key == "keywords_en":
+                if not isinstance(value, list) or not value or any(not isinstance(x, str) or not x.strip() for x in value):
+                    raise ValueError("缺少英文关键词")
+                value = "; ".join(value)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"缺少元信息：{key}")
+            values[key] = value
     counts = {token: 0 for token in fields}
     for name in before:
         if not re.fullmatch(r"word/(document|header\d+|footer\d+)\.xml", name):
@@ -361,6 +428,22 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
                 if token in text(p):
                     counts[token] += text(p).count(token)
                     replace_token(p, token, values[key]); changed = True
+                    # Inline abstract/keyword content is not a heading, even
+                    # when its template style inherits an outline level.
+                    # Keep the named style untouched; override only TOC scope.
+                    if key in {"abstract", "abstract_en", "keywords", "keywords_en", "acknowledgements"}:
+                        ppr = p.find("w:pPr", NS)
+                        if ppr is None:
+                            ppr = E.Element("{" + NS["w"] + "}pPr")
+                            p.insert(0, ppr)
+                        level = ppr.find("w:outlineLvl", NS)
+                        if level is None:
+                            level = E.Element("{" + NS["w"] + "}outlineLvl")
+                            later = ppr.find("w:rPr", NS)
+                            if later is None:
+                                later = ppr.find("w:sectPr", NS)
+                            ppr.insert(ppr.index(later) if later is not None else len(ppr), level)
+                        level.set("{" + NS["w"] + "}val", "9")
         if changed:
             parts[name] = xml(tree)
     if any(v == 0 for v in counts.values()):
@@ -368,15 +451,42 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
     if not {"abstract", "keywords"} <= set(fields.values()):
         raise ValueError("模板必须绑定摘要和关键词")
     result_doc = parse(parts["word/document.xml"])
+    from .quality import clean_and_check
+    quality_report, removed_sections = clean_and_check(result_doc, parse(parts["word/styles.xml"]))
+    for image_paragraph in result_doc.xpath(".//w:p[.//w:drawing]", namespaces=NS):
+        paragraph_property(image_paragraph, "spacing", line="240", lineRule="auto")
+        paragraph_property(image_paragraph, "snapToGrid", val="0")
+    parts["word/document.xml"] = xml(result_doc)
     if re.search(r"\{\{[^}]+\}\}|\[\[REF_", text(result_doc)):
         raise ValueError("成稿存在未解析占位符")
     bookmarks = result_doc.xpath(".//w:bookmarkStart/@w:name", namespaces=NS)
     for target in result_doc.xpath(".//w:fldSimple/@w:instr", namespaces=NS):
         if target.startswith("REF Paper") and target.split()[1] not in bookmarks:
             raise ValueError("装配交叉引用目标缺失")
+    has_toc = any(re.match(r"\s*TOC\b", instruction) for instruction in result_doc.xpath(
+        ".//w:instrText/text()|.//w:fldSimple/@w:instr", namespaces=NS))
+    update_fields = (has_toc or bool(quality_report.get("toc_entries"))) and "word/settings.xml" in parts
+    if update_fields:
+        settings = parse(parts["word/settings.xml"])
+        update = settings.find("w:updateFields", NS)
+        if update is None:
+            update = E.SubElement(settings, "{" + W + "}updateFields")
+        update.set("{" + W + "}val", "true")
+        parts["word/settings.xml"] = xml(settings)
+        for field in result_doc.xpath(".//w:fldChar[@w:fldCharType='begin']|.//w:fldSimple", namespaces=NS):
+            field.set("{" + W + "}dirty", "true")
+        parts["word/document.xml"] = xml(result_doc)
     # 逐部件证明：styles/theme/fonts/numbering 等二进制相同；sectPr 结构不变。
     changed_parts = [n for n in before if parts[n] != before[n]]
     allowed = {"word/document.xml", rel_name, "[Content_Types].xml"}
+    if update_fields:
+        old_settings, new_settings = parse(before["word/settings.xml"]), parse(parts["word/settings.xml"])
+        for tree in (old_settings, new_settings):
+            for node in tree.findall("w:updateFields", NS):
+                tree.remove(node)
+        if E.tostring(old_settings) != E.tostring(new_settings):
+            raise ValueError("域更新开关之外的文档设置发生变化")
+        allowed.add("word/settings.xml")
     for name in changed_parts:
         if name not in allowed and not re.fullmatch(r"word/(header|footer)\d+\.xml", name):
             raise ValueError(f"装配修改了受保护部件：{name}")
@@ -389,25 +499,26 @@ def assemble(template: Path, contract: dict, state: dict, abstract: str, keyword
                 raise ValueError("页眉页脚格式发生改变")
     sections_before = parse(before["word/document.xml"]).xpath(".//w:sectPr", namespaces=NS)
     sections_after = result_doc.xpath(".//w:sectPr", namespaces=NS)
-    if [E.tostring(x) for x in sections_before] != [E.tostring(x) for x in sections_after]:
+    if [E.tostring(x) for x in sections_before if E.tostring(x) not in removed_sections] != [E.tostring(x) for x in sections_after]:
         raise ValueError("分节格式发生变化")
-    report = {"template_sha256": fingerprint, "sections": len(records), "assets": len(assets),
+    report = {"structure_check": quality_report, "template_sha256": fingerprint, "sections": len(records), "assets": len(assets),
               "changed_parts": changed_parts, "added_media": added_media,
-              "protected_parts_identical": True, "section_properties_identical": True,
+              "protected_parts_identical": True, "section_properties_identical": not bool(removed_sections), "retained_section_properties_identical": True,
               "template_format_preserved": True,
+              "update_fields_on_open": update_fields,
               "content_sha256": sha256(json.dumps(records, ensure_ascii=False, sort_keys=True).encode()).hexdigest()}
     return archive_bytes(parts), report
 
 
 def asset_constraints(state):
-    """将批准模板的图片比例/表格列数传给编码任务，避免装配时猜测格式。"""
+    """传递模板宽度/版心限制；固定图片框需显式选择 fixed。"""
     contract = state.get("assembly_contract")
     if not contract:
         return {}
     template = Path(state.get("new_template_path") or state.get("raw_doc_path", ""))
     if sha256(template.read_bytes()).hexdigest() != contract.get("template_sha256"):
         raise ValueError("模板指纹与装配绑定不一致")
-    result = {"table_columns": [int(n) for n in contract.get("tables", {})]}
+    result = {"table_columns": [int(n) for n in contract.get("tables", {})], "diagram_palette": "black_white"}
     marker = contract.get("paragraphs", {}).get("figure")
     if marker:
         body = parse(package(template)["word/document.xml"]).find("w:body", NS)
@@ -420,5 +531,32 @@ def asset_constraints(state):
         width, height = int(extents[0].get("cx")), int(extents[0].get("cy"))
         if min(width, height) <= 0:
             raise ValueError("图片原型尺寸无效")
-        result["image_aspect_ratio"] = width / height
+        policy = contract.get("image_sizing", "fit_width")
+        if policy not in {"fixed", "fit_width"}:
+            raise ValueError("无效图片尺寸策略")
+        result["image_sizing"] = policy
+        if policy == "fixed":
+            result["image_aspect_ratio"] = width / height
+        else:
+            result["image_max_width_emu"] = width
+            # 正文锚点所属节的页面属性在其后的第一个 sectPr 中。
+            children = list(body)
+            anchor = next((p for p in children if text(p) == contract.get("body_marker")), None)
+            if anchor is not None:
+                for child in children[children.index(anchor):]:
+                    sections = [child] if child.tag == "{" + NS["w"] + "}sectPr" else child.findall(".//w:sectPr", NS)
+                    if not sections:
+                        continue
+                    section = sections[0]
+                    page, margins = section.find("w:pgSz", NS), section.find("w:pgMar", NS)
+                    if page is not None and margins is not None:
+                        def value(node, name):
+                            return int(node.get("{" + NS["w"] + "}" + name, "0"))
+                        usable_width = value(page, "w") - value(margins, "left") - value(margins, "right")
+                        usable_height = value(page, "h") - value(margins, "top") - value(margins, "bottom")
+                        if min(usable_width, usable_height) > 0:
+                            result["image_max_width_emu"] = min(width, usable_width * 635)
+                            # 留出图题空间，超高图片整体等比缩小。
+                            result["image_max_height_emu"] = round(usable_height * 635 * 0.9)
+                    break
     return result

@@ -23,6 +23,7 @@ class AssemblyTests(unittest.TestCase):
             state = commit_fixture(state, [
                 {"asset_id":"table_1", "description":"权限表", "kind":"table", "source_path":"writing/assets/table.json", "path":"writing/assets/table.json"},
                 {"asset_id":"fig_1", "description":"业务流程", "kind":"diagram", "source_path":"writing/assets/source.py", "path":"writing/assets/figure.png"}])
+            state["layout_options"] = {"chapter_page_break": True}
             output = root/"assembly/final.docx"
             agent = AssemblyAgent(state, contract, "上游提交的摘要", ["预约", "权限"], str(output))
             result = agent.invoke(); first = output.read_bytes()
@@ -45,6 +46,12 @@ class AssemblyTests(unittest.TestCase):
             self.assertEqual(sum(x.startswith("SEQ Paper") for x in fields), 2)
             self.assertEqual(len(tree.xpath(".//w:bookmarkStart", namespaces=NS)), 2)
             self.assertEqual(len(doc.inline_shapes), 1)
+            figure_p = tree.xpath(".//w:p[.//w:drawing]", namespaces=NS)[0]
+            spacing = figure_p.find("w:pPr/w:spacing", NS)
+            self.assertEqual(spacing.get("{" + NS["w"] + "}lineRule"), "auto")
+            self.assertEqual(spacing.get("{" + NS["w"] + "}line"), "240")
+            self.assertTrue(tree.xpath(".//w:pageBreakBefore[@w:val='1']", namespaces=NS))
+
             self.assertEqual([[c.text for c in row.cells] for row in doc.tables[0].rows], [["角色","操作"],["学生","预约"],["管理员","维护"]])
             old = Document(state["new_template_path"])
             proto = next(p for p in old.paragraphs if p.text == "{{原型:body}}")
@@ -96,6 +103,12 @@ class AssemblyTests(unittest.TestCase):
             fields=tree.xpath(".//w:fldSimple/@w:instr",namespaces=NS)
             self.assertEqual(len(fields),2)
             self.assertEqual(fields[0],fields[1])
+            for field in tree.xpath(".//w:fldSimple", namespaces=NS):
+                self.assertEqual(field.find("w:r/w:rPr/w:vertAlign", NS).get("{"+NS["w"]+"}val"), "superscript")
+            entry = next(p for p in tree.xpath(".//w:body/w:p", namespaces=NS) if text(p).startswith("[1] 乙"))
+            self.assertEqual(entry.find("w:pPr/w:outlineLvl", NS).get("{"+NS["w"]+"}val"), "9")
+            self.assertFalse(entry.xpath(".//w:vertAlign[@w:val='superscript']", namespaces=NS))
+
 
     def test_asset_mutation_rejected_after_commit(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -108,7 +121,7 @@ class AssemblyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"资产被修改"):
                 AssemblyAgent(state,contract,"摘要",["关键词"],str(root/"assembly/final.docx")).invoke()
 
-    def test_supplied_school_template_keeps_original_styles_and_sections(self):
+    def test_unbound_school_template_empty_headings_are_rejected(self):
         from agent.paths import project_root
         from agent.assembly.engine import archive_bytes, xml, set_text, W
         from lxml import etree as E
@@ -134,17 +147,12 @@ class AssemblyTests(unittest.TestCase):
                       "paragraphs":mapping,"fields":{"{{论文题目}}":"topic","{{摘要}}":"abstract","{{关键词}}":"keywords"}}
             state["new_template_path"]=str(template)
             output=root/"assembly/school.docx"
-            AssemblyAgent(state,contract,"学校模板装配验证摘要",["模板","格式"],str(output)).invoke()
-            final=package(output)
-            for name,payload in original.items():
-                if name != "word/document.xml":self.assertEqual(payload,final[name],name)
-            after=parse(final["word/document.xml"])
-            before_sections=parse(original["word/document.xml"]).xpath(".//w:sectPr",namespaces=NS)
-            after_sections=after.xpath(".//w:sectPr",namespaces=NS)
-            self.assertEqual([E.tostring(x) for x in before_sections],[E.tostring(x) for x in after_sections])
-            self.assertIn("学校模板装配验证摘要",text(after))
-            self.assertIn("本人郑重声明",text(after))
-            self.assertIn(state["writing_records"][0]["content"],text(after))
+            # This partial contract leaves raw template headings unfilled.
+            # The new pre-delivery gate must reject them instead of shipping a skeleton.
+            with self.assertRaisesRegex(ValueError, "标题下没有有效内容"):
+                AssemblyAgent(state,contract,"学校模板装配验证摘要",["模板","格式"],str(output)).invoke()
+            self.assertFalse(output.exists())
+            self.assertEqual(package(source), original)
 
     def test_duplicate_reference_prefix_is_rejected_before_assembly(self):
         with tempfile.TemporaryDirectory() as folder:

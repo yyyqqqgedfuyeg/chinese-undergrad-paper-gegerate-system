@@ -72,10 +72,11 @@ class WritingAgent:
     def get_skills(self):
         return list(self.skills)
 
-    def get_all_tools(self, workspace_dir: str, *, tasks=(), records=(), facts=None, issued=None, constraints=None):
+    def get_all_tools(self, workspace_dir: str, *, tasks=(), records=(), facts=None, issued=None, constraints=None, prepared_instructions=None):
         reject_extra_tools(self.skills)
         return create_writing_tools(workspace_dir, tasks=tasks, records=records,
-                                    coder=self.coder, facts=facts, issued=issued, constraints=constraints)
+                                    coder=self.coder, facts=facts, issued=issued, constraints=constraints,
+                                    prepared_instructions=prepared_instructions)
 
     @staticmethod
     def _tasks(state):
@@ -124,6 +125,9 @@ class WritingAgent:
         return tasks
 
     def _prepare(self, state):
+        if state.get("research_lock"):
+            from ..research import assert_research_lock
+            assert_research_lock(state)
         tasks = self._tasks(state)
         root = Path(state["workspace_dir"]).resolve()
         root.mkdir(parents=True, exist_ok=True)
@@ -170,12 +174,34 @@ class WritingAgent:
         root = Path(state["workspace_dir"]).resolve()
         records = state["writing_records"]
         tasks = state["writing_tasks"][len(records):len(records) + self.batch_size]
+        # 图表密集章节预留正文生成和一致性修复预算；仍按连续叶子标题推进。
+        while len(tasks) > 1 and sum(len(t["planned_assets"]) for t in tasks) > 4:
+            tasks = tasks[:-1]
         from ..assembly.engine import asset_constraints
-        issued = {}
+        from .prepared_assets import load_prepared, save_prepared
+        constraints = asset_constraints(state)
+        issued, prepared_instructions = load_prepared(root, state, tasks, constraints)
+        error_path = root / "writing/last-batch-error.json"
+        batch_identity = {"input_fingerprint": input_fingerprint(state),
+                          "section_ids": [t["section_id"] for t in tasks]}
+        previous_errors = []
+        if error_path.exists():
+            saved_error = json.loads(error_path.read_text())
+            if all(saved_error.get(k) == v for k, v in batch_identity.items()):
+                previous_errors = saved_error.get("errors", [])
         tools = {tool.name: tool for tool in self.get_all_tools(str(root), tasks=tasks, records=records,
                     facts=state.get("single_source_of_truth", {}), issued=issued,
-                    constraints=asset_constraints(state))}
-        model = self.llm.bind_tools(list(tools.values()))
+                    constraints=constraints, prepared_instructions=prepared_instructions)}
+        if len(records) <= 3:
+            tools.pop("read_section", None)
+        if not any(task["planned_assets"] for task in tasks):
+            tools.pop("code_asset", None)
+        asset_tool = tools.get("code_asset")
+        from .storage import asset_id
+        planned_keys = {(t["section_id"], asset_id(a)) for t in tasks for a in t["planned_assets"]}
+        asset_repair_pending = any(any(label in error for label in ("审查", "图表", "资产"))
+                                   for error in previous_errors)
+        model = self.llm.bind_tools(list(tools.values())) if tools else self.llm
         prompt = WRITING_PROMPT
         prompt += "\n已挂载项目技能:\n" + "\n".join(
             f"[{skill.name}] {skill.description}\n{skill.instructions}" for skill in self.skills)
@@ -183,7 +209,15 @@ class WritingAgent:
         context = {"topic": state["topic"], "single_source_of_truth": state.get("single_source_of_truth", {}),
                    "bib_pool": state.get("bib_pool", []),
                    "outline": [{"section_id": t["section_id"], "title": t["title"]} for t in state["outline_plan"]],
-                   "current_tasks": tasks, "handoff": handoff_context(records),
+                   "current_tasks": tasks,
+                   "asset_render_constraints": constraints,
+                   "previous_validation_errors": previous_errors,
+                   "prepared_assets": [{"section_id": key[0], "asset": asset,
+                                        "instructions": prepared_instructions[key]} for key, asset in issued.items()],
+                   "length_constraints": [{"section_id": t["section_id"], "target_characters": t["target_words"],
+                        "minimum_characters": max(1, int(t["target_words"] * 0.6)), "maximum_characters": t["target_words"] * 2} for t in tasks],
+                   "handoff": handoff_context(records),
+                   "recent_sections": [{"section_id": r["section_id"], "title": r["title"], "content": r["content"]} for r in records[-3:]],
                    "previous_tail": records[-1]["content"][-500:] if records else ""}
         messages = [SystemMessage(content=prompt), HumanMessage(content=json.dumps(context, ensure_ascii=False))]
         metrics = {"node_index": max((r["node_index"] for r in records), default=0) + 1,
@@ -193,6 +227,16 @@ class WritingAgent:
         repairs = 0
         try:
             for _ in range(self.max_model_calls):
+                if metrics["model_calls"] >= self.max_model_calls:
+                    break
+                if "code_asset" in tools and planned_keys <= issued.keys() and not asset_repair_pending:
+                    tools.pop("code_asset")
+                    model = self.llm.bind_tools(list(tools.values())) if tools else self.llm
+                    messages.append(HumanMessage(content="本批规划资产已全部生成。现在输出完整正文 JSON，使用已返回的资产元数据；提交前会统一审查实际图片和事实，发现问题后才重新开放修复工具。"))
+                if "read_section" in tools and metrics["tool_names"].count("read_section") >= 2:
+                    tools.pop("read_section")
+                    model = self.llm.bind_tools(list(tools.values())) if tools else self.llm
+                    messages.append(HumanMessage(content="前文读取预算已用完。请依据已提供的研究事实、章节摘要和正文完成当前批次；仅在有规划资产时调用 code_asset。"))
                 response = model.invoke(messages)
                 metrics["model_calls"] += 1
                 metrics["total_tokens"] += (getattr(response, "usage_metadata", None) or {}).get("total_tokens", 0)
@@ -208,8 +252,16 @@ class WritingAgent:
                             if call["name"] not in tools:
                                 raise ValueError("未注册工具")
                             result = tools[call["name"]].invoke(call["args"])
+                            if call["name"] == "code_asset":
+                                save_prepared(root, state, constraints, issued, prepared_instructions)
+                                asset_repair_pending = False
                             tool_message = ToolMessage(content=str(result), tool_call_id=call["id"])
                         except Exception as exc:
+                            status_code = getattr(exc, "status_code", None)
+                            if status_code in {401, 402, 403, 429} or (
+                                    isinstance(status_code, int) and status_code >= 500):
+                                # Provider failures cannot be fixed by rewriting tool instructions.
+                                raise
                             tool_message = ToolMessage(content=f"工具失败: {type(exc).__name__}: {exc}",
                                                        tool_call_id=call["id"], status="error")
                         messages.append(tool_message)
@@ -222,12 +274,37 @@ class WritingAgent:
                             if approved is None or any(approved[k] != getattr(asset, k)
                                     for k in ("asset_id", "kind", "path", "source_path")):
                                 raise ValueError("资产标识、类型和路径必须来自本批 code_asset 验收结果")
+                    if state.get("research_lock"):
+                        from ..research import review_consistency
+                        asset_data = []
+                        images = []
+                        for section in output.sections:
+                            for asset in section.assets:
+                                asset_data.append({"asset_id": asset.asset_id,
+                                    "source": (root / asset.source_path).read_text(encoding="utf-8"),
+                                    "table": (root / asset.path).read_text(encoding="utf-8") if asset.kind == "table" else None})
+                                if asset.kind != "table":
+                                    images.append({"asset_id": asset.asset_id, "path": str(root / asset.path)})
+                        if metrics["model_calls"] >= self.max_model_calls:
+                            raise ValueError("本批模型调用预算不足以进行一致性审查")
+                        metrics["model_calls"] += 1
+                        metrics["consistency_review"] = review_consistency(self.llm, state,
+                            {"sections": output.model_dump(), "asset_data": asset_data}, images=images)
                 except (ValueError, TypeError, AttributeError, OSError) as exc:
+                    previous_errors = (previous_errors + [str(exc)])[-3:]
+                    atomic_write(error_path, json.dumps({**batch_identity, "errors": previous_errors},
+                                                       ensure_ascii=False, indent=2))
                     if repairs >= self.max_repairs:
                         raise ValueError(f"本批输出校验失败: {exc}") from exc
                     repairs += 1
+                    if asset_tool is not None:
+                        tools["code_asset"] = asset_tool
+                        asset_repair_pending = True
+                        model = self.llm.bind_tools(list(tools.values()))
                     messages.append(HumanMessage(content=f"本批尚未提交。请修正以下错误并重新输出完整 JSON；"
-                                                         f"已有有效资产可复用：{str(exc)[:2000]}"))
+                        f"已有有效资产可复用：{str(exc)[:2000]}"
+                        "若为长度错误：直接改写到 target_characters 附近，不要贴近 maximum_characters；"
+                        "删除重复的英文类名、完整字段枚举和图表中已有细节，不要只删几个字后重复提交。"))
                     continue
                 metrics["duration_seconds"] = round(time.monotonic() - started, 3)
                 metrics["repairs"] = repairs
@@ -268,7 +345,8 @@ class WritingAgent:
     def invoke(self, state: PaperGlobalState, config=None) -> PaperGlobalState:
         tasks = self._tasks(state)
         options = dict(config or {})
-        options.setdefault("recursion_limit", 4 + 2 * ((len(tasks) + self.batch_size - 1) // self.batch_size))
+        # 图表密集时批次可缩至一节；上限必须覆盖完整任务的最坏批次数。
+        options.setdefault("recursion_limit", 4 + 2 * len(tasks))
         result = self.graph.invoke(copy.deepcopy(state), config=options)
         for key in ("outline_plan", "writing_records", "writing_report", "writing_manifest_path"):
             state[key] = result[key]

@@ -12,6 +12,33 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from ..state import PaperGlobalState
 
 
+def validate_outline_depth(outline):
+    """Substantive chapters expand to level 3; theory stays at level 2."""
+    chapters = {n["section_id"]: n for n in outline if "." not in n["section_id"]}
+    ids = {n["section_id"] for n in outline}
+    for sid, chapter in chapters.items():
+        title = re.sub(r"\s", "", chapter["title"])
+        theory = bool(re.search(r"相关.*(?:理论|技术)|理论与技术|技术与理论", title))
+        if theory and any(i.startswith(sid + ".") and i.count(".") == 2 for i in ids):
+            raise ValueError("相关理论与技术章节只保留二级标题")
+        exceptional = theory or sid == "1" or bool(re.search(r"摘要|Abstract|致谢|参考文献|附录|总结|结论|展望|目录", title, re.I))
+        if exceptional:
+            continue
+        seconds = [n for n in outline if n["section_id"].count(".") == 1 and n["section_id"].split(".")[0] == sid]
+        substantive = [n for n in seconds if not re.search(r"本章小结|本章总结", n["title"])]
+        if not substantive:
+            raise ValueError(f"主体章节 {sid} 必须包含展开到三级的二级标题")
+        expanded = 0
+        for node in substantive:
+            children = [i for i in ids if i.count(".") == 2 and i.rsplit(".", 1)[0] == node["section_id"]]
+            if len(children) == 1:
+                raise ValueError(f"二级标题 {node['section_id']} 展开时至少需要两个三级子标题")
+            expanded += len(children) >= 2
+        if expanded <= len(substantive) / 2:
+            raise ValueError(f"主体章节 {sid} 的多数二级标题（例如 {substantive[0]['section_id']}）必须展开至少两个三级标题")
+
+
+
 class SectionPlanOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -38,8 +65,8 @@ class OutlineOutput(BaseModel):
         for section, section_id in zip(self.outline_plan, ids):
             if len(section_id) > 1 and section_id[:-1] not in id_set:
                 raise ValueError("每个小节必须先提供所属章标题和二级标题")
-            if len(section_id) == 3 and section_id[0] <= 2:
-                raise ValueError("第一、二章保留到二级标题")
+            if len(section_id) == 3 and section_id[0] == 1:
+                raise ValueError("第一章保留到二级标题")
             children = [key for key in ids if len(key) == len(section_id) + 1 and key[:-1] == section_id]
             if children and section.target_words != 0:
                 raise ValueError("包含子标题的节点 target_words 必须为 0，避免重复计算字数")
@@ -49,6 +76,7 @@ class OutlineOutput(BaseModel):
                 r"需求分析|系统分析|系统设计|总体设计|详细设计|数据库设计|系统实现|系统开发|系统测试", section.title
             ) and not any(len(key) == 3 and key[0] == section_id[0] for key in ids):
                 raise ValueError("系统分析、设计、实现、测试等核心章节必须细分至三级标题")
+        validate_outline_depth([s.model_dump() for s in self.outline_plan])
         if any(not asset.strip() for section in self.outline_plan for asset in section.planned_assets):
             raise ValueError("planned_assets 不得包含空白条目")
         return self

@@ -164,6 +164,14 @@ def replace_span(p, old, new):
     """Replace a unique span even across fragmented runs, preserving unaffected text."""
     nodes = p.findall('.//w:t', NS)
     full = ''.join(n.text or '' for n in nodes)
+    if old == "" and full == "" and new:
+        # Empty image/anchor paragraphs need a text marker for deterministic
+        # assembly binding. Keep drawings and paragraph formatting untouched.
+        run = ET.SubElement(p, q('r'))
+        node = ET.SubElement(run, q('t'))
+        node.set(XML_SPACE, 'preserve')
+        node.text = new
+        return [run]
     if not old or full.count(old) != 1:
         raise ValueError(f'Replacement must match exactly once: {old!r}')
     start = full.index(old)
@@ -234,6 +242,8 @@ def apply_plan(parts, plan):
         ps = paragraphs(root) if name == 'word/document.xml' else root.findall('.//w:p',NS)
         touched.add(name)
         scope = edit.get('scope','body')
+        if scope in ('header', 'footer') and re.fullmatch(r'word/' + scope + r'[0-9]+\.xml', name):
+            scope = 'body'
         if scope not in ('body','table'):
             raise ValueError(f'Invalid scope: {scope}')
         key = (name,scope,idx)
