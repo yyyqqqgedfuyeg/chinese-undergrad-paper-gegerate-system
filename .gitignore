@@ -59,3 +59,8 @@ test/test_paper_draft.md
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# 按问题归档的测试运行产物
+tests/**/runs/
+tests/历史测试产物/artifacts/
+tests/历史测试产物/render/

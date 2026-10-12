@@ -17,3 +17,7 @@ pydantic>=2.0.0
 
 # 学术检索 API
 httpx>=0.27.0
+
+# 编码图表与验收
+pillow>=10.0
+matplotlib>=3.8
