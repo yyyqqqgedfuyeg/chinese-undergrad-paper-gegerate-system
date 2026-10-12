@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..assembly.engine import asset_constraints
 from ..coding import CodingAgent
+from ..paper_routing import routing_context
 from ..research import assert_research_lock, digest, review_consistency
 from .agent import WritingAgent
 from .prepared_assets import file_hashes
@@ -60,7 +61,7 @@ class FinalAssetReviewAgent:
                         save_audit()
                         if attempt == self.max_repairs:
                             raise ValueError(f"成稿图表复查未通过 {asset['asset_id']}: {exc}") from exc
-                        asset = self.coder.run_asset({"section_id": record["section_id"],
+                        asset = self.coder.run_asset({**routing_context(state), "section_id": record["section_id"],
                             "asset_id": initial["asset_id"], "requirement": initial["description"],
                             "previous_source_path": asset["source_path"],
                             "single_source_of_truth": state["single_source_of_truth"],

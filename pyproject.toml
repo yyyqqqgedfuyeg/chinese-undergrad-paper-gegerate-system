@@ -18,7 +18,7 @@ dependencies = {file = ["requirements.txt"]}
 where = ["src"]
 
 [tool.setuptools.package-data]
-agent = ["web/*", "writing/*.cjs"]
+agent = ["web/*", "writing/*.cjs", "paper_rules/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]

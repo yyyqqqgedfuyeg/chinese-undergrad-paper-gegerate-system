@@ -4,6 +4,7 @@ import json
 from hashlib import sha256
 from pathlib import Path
 
+from .paper_routing import ensure_paper_profile, is_software
 from .outline_agent import OutlineAgent
 from .literature_agent import LiteratureAgent
 from .writing import WritingAgent
@@ -59,6 +60,7 @@ class PaperWorkflow:
     def _run(self, state, root, abstract, keywords):
         inputs = deepcopy(state)
         inputs["workspace_dir"] = str(root)
+        ensure_paper_profile(inputs)
         identity = {"state": inputs, "abstract": abstract, "keywords": keywords}
         for key in ("raw_doc_path", "new_template_path"):
             if state.get(key):
@@ -115,7 +117,7 @@ class PaperWorkflow:
             if not s.get("outline_plan"):
                 self.outline.invoke(s)
             WritingAgent._tasks(s)
-            validate_outline_depth(s["outline_plan"])
+            validate_outline_depth(s["outline_plan"], software=is_software(s))
             s["outline_review"] = review_consistency(self.llm, s, s["outline_plan"])
             # Fail before expensive writing if planned assets have no format prototypes.
             planned = [a for t in s["outline_plan"] for a in t["planned_assets"]]

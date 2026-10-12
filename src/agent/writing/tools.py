@@ -17,7 +17,7 @@ def load_project_skills():
     return [role_skill("writing")]
 
 
-def create_writing_tools(workspace_dir: str, *, tasks=(), records=(), coder=None, facts=None, issued=None, constraints=None, prepared_instructions=None):
+def create_writing_tools(workspace_dir: str, *, tasks=(), records=(), coder=None, facts=None, issued=None, constraints=None, prepared_instructions=None, paper_context=None):
     from ..coding import CodingAgent
     from .storage import asset_id
     root = Path(workspace_dir).resolve()
@@ -48,7 +48,7 @@ def create_writing_tools(workspace_dir: str, *, tasks=(), records=(), coder=None
             raise PermissionError("只能生成当前小节已规划的资产")
         if key not in generated or generated_instructions.get(key) != instructions:
             generated[key] = (coder or CodingAgent()).run_asset(
-                {"section_id": section_id, "asset_id": asset_id, "requirement": allowed[key],
+                {**(paper_context or {}), "section_id": section_id, "asset_id": asset_id, "requirement": allowed[key],
                  "instructions": instructions, "single_source_of_truth": facts or {},
                  "previous_source_path": generated.get(key, {}).get("source_path"),
                  "render_constraints": constraints or {}}, str(root))

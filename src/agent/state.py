@@ -38,6 +38,10 @@ class GlobalPlannerState(TypedDict):
 
 
 class PaperGlobalState(TypedDict, total=False):
+    discipline: str  # 专业，如旅游管理、软件工程
+    research_domain: str  # 研究领域，如乡村旅游、自然语言处理
+    paper_type: str  # auto 或路由配置中的论文类型
+    paper_profile: Dict[str, Any]  # 统一路由结果及规则指纹
     layout_options: dict[str, bool]  # chapter_page_break: start each main chapter on a new page
     """
     系统全局共享状态。
@@ -94,6 +98,9 @@ def create_initial_global_state(
     bib_pool: Optional[List[Dict[str, Any]]] = None,
     outline_plan: Optional[List[SectionPlan]] = None,
     publication_year_range: Optional[Dict[str, int]] = None,
+    discipline: str = "",
+    research_domain: str = "",
+    paper_type: str = "auto",
 ) -> PaperGlobalState:
     """
     便捷工厂函数：创建并初始化 PaperGlobalState
@@ -108,6 +115,9 @@ def create_initial_global_state(
         "outline_plan": outline_plan if outline_plan is not None else [],
         "project_id": project_id,
         "topic": topic,
+        "discipline": discipline,
+        "research_domain": research_domain,
+        "paper_type": paper_type,
         "publication_year_range": publication_year_range,
     }
 

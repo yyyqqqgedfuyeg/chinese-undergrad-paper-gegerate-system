@@ -5,6 +5,7 @@ from langchain_core.tools import BaseTool
 
 from .agent import BaseReActAgent, Skill
 from .state import FormatExtractorState
+from .paper_routing import format_prompt
 from .template.tools import create_template_tools
 from .security.policy import authorize, reject_extra_tools, role_skill
 from .utils.get_sys_path import get_workspace_path
@@ -71,7 +72,7 @@ class DocxTemplateAgent(BaseReActAgent):
 
     def get_system_prompt(self, state: Dict[str, Any]) -> str:
         instructions = "\n".join(s.instructions for s in self.get_skills())
-        return (self.inner_sys_prompt + "\n" + instructions
+        return format_prompt("论文模板提取与验证", self.inner_sys_prompt + "\n" + instructions
                 + f"\n只读学校模板：{self.source_path or '未绑定，请由调用方配置'}"
                 + f"\n模板输出目录：{self.task_workspace}/template"
                 + "\n可用工具：inspect_template、build_template、verify_template。")
