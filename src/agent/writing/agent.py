@@ -16,7 +16,7 @@ from langgraph.graph import END, START, StateGraph
 from ..agent import Skill
 from ..security.policy import authorize, reject_extra_tools
 from ..state import PaperGlobalState
-from .prompts import WRITING_PROMPT
+from ..paper_routing import agent_prompt, format_prompt, resolve_paper_profile, routing_context
 from .models import create_writing_model
 from .schemas import BatchOutput, WritingRecord, handoff_context
 from .storage import (asset_id, atomic_write, input_fingerprint, parse_batch, sha256,
@@ -72,11 +72,11 @@ class WritingAgent:
     def get_skills(self):
         return list(self.skills)
 
-    def get_all_tools(self, workspace_dir: str, *, tasks=(), records=(), facts=None, issued=None, constraints=None, prepared_instructions=None):
+    def get_all_tools(self, workspace_dir: str, *, tasks=(), records=(), facts=None, issued=None, constraints=None, prepared_instructions=None, paper_context=None):
         reject_extra_tools(self.skills)
         return create_writing_tools(workspace_dir, tasks=tasks, records=records,
                                     coder=self.coder, facts=facts, issued=issued, constraints=constraints,
-                                    prepared_instructions=prepared_instructions)
+                                    prepared_instructions=prepared_instructions, paper_context=paper_context)
 
     @staticmethod
     def _tasks(state):
@@ -191,7 +191,7 @@ class WritingAgent:
                 previous_errors = saved_error.get("errors", [])
         tools = {tool.name: tool for tool in self.get_all_tools(str(root), tasks=tasks, records=records,
                     facts=state.get("single_source_of_truth", {}), issued=issued,
-                    constraints=constraints, prepared_instructions=prepared_instructions)}
+                    constraints=constraints, prepared_instructions=prepared_instructions, paper_context=routing_context(state))}
         if len(records) <= 3:
             tools.pop("read_section", None)
         if not any(task["planned_assets"] for task in tasks):
@@ -202,11 +202,12 @@ class WritingAgent:
         asset_repair_pending = any(any(label in error for label in ("审查", "图表", "资产"))
                                    for error in previous_errors)
         model = self.llm.bind_tools(list(tools.values())) if tools else self.llm
-        prompt = WRITING_PROMPT
+        prompt = agent_prompt("writing", state)
         prompt += "\n已挂载项目技能:\n" + "\n".join(
             f"[{skill.name}] {skill.description}\n{skill.instructions}" for skill in self.skills)
+        prompt = format_prompt("论文正文撰写", prompt)
         prompt += "\n最终输出 JSON Schema:\n" + json.dumps(BatchOutput.model_json_schema(), ensure_ascii=False)
-        context = {"topic": state["topic"], "single_source_of_truth": state.get("single_source_of_truth", {}),
+        context = {"paper_profile": resolve_paper_profile(state), "topic": state["topic"], "single_source_of_truth": state.get("single_source_of_truth", {}),
                    "bib_pool": state.get("bib_pool", []),
                    "outline": [{"section_id": t["section_id"], "title": t["title"]} for t in state["outline_plan"]],
                    "current_tasks": tasks,

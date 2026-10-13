@@ -7,7 +7,8 @@ from uuid import uuid4
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from .tools import create_coding_tools
-from ..security.policy import authorize, role_skill
+from ..security.policy import authorize
+from ..paper_routing import agent_prompt
 from ..security.sandbox import scoped_path
 
 
@@ -71,7 +72,7 @@ PY"""})
                     and not re.search(r"时序|sequence", task.get("requirement", ""), re.I)
                     and re.search(r"类图|ER图|流程|结构图|状态", task.get("requirement", ""))):
                 task["layout_engine"] = "graphviz"
-            messages = [SystemMessage(content=role_skill("coding").instructions),
+            messages = [SystemMessage(content=agent_prompt("coding", task)),
                         HumanMessage(content=json.dumps({**task, "runtime_environment": self.runtime_profile}, ensure_ascii=False))]
             finalize = False
             for _ in range(self.max_model_calls):

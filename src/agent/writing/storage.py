@@ -18,6 +18,8 @@ def input_fingerprint(state: dict) -> str:
     value = {key: state.get(key) for key in
              ("project_id", "topic", "single_source_of_truth", "bib_pool", "research_lock",
               "assembly_contract", "new_template_path")}
+    from ..paper_routing import resolve_paper_profile
+    value["paper_profile"] = resolve_paper_profile(state)
     value["outline_plan"] = [{k: v for k, v in task.items() if k != "status"}
                              for task in state["outline_plan"]]
     return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True))

@@ -9,6 +9,7 @@ from .agent import BaseReActAgent
 from .literature_tool import LiteratureSearchError, PublicationYearRange, SearchQueries, create_literature_tool
 from .output_parsers.literature_parser import parse_literature_output, title_identity
 from .state import PaperGlobalState
+from .paper_routing import format_prompt, profile_guidance
 
 
 class LiteratureAgent:
@@ -57,7 +58,7 @@ class LiteratureAgent:
         self._validate_input(state)
         year_range = (PublicationYearRange.model_validate(state["publication_year_range"])
                       if state.get("publication_year_range") is not None else None)
-        messages = [SystemMessage(content=self.inner_sys_prompt), HumanMessage(content=json.dumps(
+        messages = [SystemMessage(content=format_prompt("论文文献检索", self.inner_sys_prompt, profile_guidance(state))), HumanMessage(content=json.dumps(
             {"topic": state["topic"], "single_source_of_truth": state.get("single_source_of_truth", {}),
              "outline_plan": state.get("outline_plan", []),
              "publication_year_range": year_range.model_dump(exclude_none=True) if year_range else None},
